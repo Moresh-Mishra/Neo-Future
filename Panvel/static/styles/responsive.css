@@ -1,0 +1,146 @@
+/* Responsive Design */
+
+/* Tablet */
+@media (max-width: 1023px) {
+  :root {
+    --model-width: 350px;
+  }
+  
+  .sidebar {
+    width: var(--sidebar-width-collapsed);
+  }
+  
+  .sidebar.expanded {
+    width: var(--sidebar-width-expanded);
+  }
+  
+  .message-content {
+    max-width: 80%;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  :root {
+    --model-width: 100%;
+  }
+  
+  .app-container {
+    flex-direction: column;
+  }
+  
+  /* Sidebar as overlay */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: var(--sidebar-width-expanded);
+    transform: translateX(-100%);
+    transition: transform var(--transition-base);
+    z-index: 100;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .sidebar.expanded {
+    transform: translateX(0);
+  }
+  
+  .sidebar-toggle {
+    position: fixed;
+    top: var(--spacing-md);
+    left: var(--spacing-md);
+    z-index: 101;
+    background-color: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .sidebar.expanded .sidebar-toggle {
+    left: calc(var(--sidebar-width-expanded) - 48px);
+  }
+  
+  /* Overlay backdrop */
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+  }
+  
+  .sidebar.expanded ~ .sidebar-backdrop {
+    display: block;
+  }
+  
+  /* Chat container */
+  .chat-container {
+    flex: 1;
+    min-height: 0;
+  }
+  
+  /* Model container as bottom sheet */
+  .model-container {
+    width: 100%;
+    height: 50vh;
+    border-left: none;
+    border-top: 1px solid var(--color-border);
+  }
+  
+  .message-content {
+    max-width: 85%;
+  }
+  
+  .messages-area {
+    padding: var(--spacing-md);
+  }
+  
+  .input-container {
+    padding: var(--spacing-md);
+  }
+  
+  .model-controls {
+    padding: var(--spacing-md);
+  }
+  
+  .subtitles {
+    bottom: 60px;
+    font-size: 16px;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .message-content {
+    max-width: 90%;
+    font-size: var(--font-size-sm);
+  }
+  
+  .btn-send {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .message-input {
+    min-height: 40px;
+    font-size: var(--font-size-sm);
+  }
+  
+  .model-container {
+    height: 40vh;
+  }
+}
+
+/* Landscape mobile */
+@media (max-width: 767px) and (orientation: landscape) {
+  .model-container {
+    display: none;
+  }
+  
+  .chat-container {
+    height: 100vh;
+  }
+}

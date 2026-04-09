@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmWell AI - Authentication</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* EmWell AI Color Scheme - Matching index.html */
+            --color-bg-primary: #1A1A1A;
+            --color-bg-secondary: #252525;
+            --color-bg-tertiary: #2F2F2F;
+            --color-text-primary: #E8E8E8;
+            --color-text-secondary: #A0A0A0;
+            --color-text-tertiary: #6A6A6A;
+            --color-border: #3A3A3A;
+            --color-border-active: #5A5A5A;
+            --color-accent: #4A9EFF;
+            --color-accent-hover: #6BB0FF;
+            --color-hover: #2A2A2A;
+            --color-error: #FF4444;
+            --color-success: #10B981;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            --transition-fast: 0.2s ease;
+            --transition-base: 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background Effects - Simplified */
+        .bg-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            background: var(--color-accent);
+            opacity: 0.05;
+            border-radius: 50%;
+            filter: blur(100px);
+        }
+        .floating-blur-1 {
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 200px;
+            height: 200px;
+            background: var(--color-accent);
+            opacity: 0.08;
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .floating-blur-2 {
+            position: absolute;
+            bottom: 20%;
+            right: 20%;
+            width: 150px;
+            height: 150px;
+            background: var(--color-accent);
+            opacity: 0.06;
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: float2 10s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            50% { transform: translateY(-20px) translateX(10px); }
+        }
+
+        @keyframes float2 {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            50% { transform: translateY(15px) translateX(-15px); }
+        }
+
+        /* Main Container */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-lg);
+        }
+
+        /* Auth Card */
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.6s ease;
+            position: relative;
+        }
+
+        @keyframes fadeInUp {
+            0% { 
+                opacity: 0; 
+                transform: translateY(30px);
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+
+        /* Logo */
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .logo-text {
+            color: var(--color-accent);
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.025em;
+        }
+        /* Typography */
+        .title {
+            color: var(--color-text-primary);
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            text-align: center;
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            margin-bottom: var(--spacing-lg);
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .access-notice {
+            background: var(--color-bg-tertiary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+            text-align: center;
+            width: 100%;
+        }
+
+        .access-notice-text {
+            color: var(--color-accent);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* Form */
+        .form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .input-group {
+            position: relative;
+            width: 100%;
+        }
+
+        .input, .select {
+            width: 100%;
+            background: var(--color-bg-tertiary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: 12px var(--spacing-md);
+            color: var(--color-text-primary);
+            outline: none;
+            transition: all var(--transition-fast);
+            font-size: 14px;
+        }
+
+        .input.has-icon {
+            padding-right: 40px;
+        }
+
+        .input::placeholder {
+            color: var(--color-text-tertiary);
+        }
+
+        .input:focus, .select:focus {
+            border-color: var(--color-accent);
+            background: var(--color-bg-secondary);
+            box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
+        }
+
+        .select {
+            cursor: pointer;
+        }
+
+        .select option {
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-tertiary);
+            transition: color var(--transition-fast);
+        }
+
+        .password-toggle:hover {
+            color: var(--color-text-secondary);
+        }
+
+        .password-toggle svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            background: var(--color-accent);
+            color: white;
+            font-weight: 600;
+            padding: 12px 0;
+            border-radius: var(--border-radius-md);
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--color-accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--color-accent);
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-link:hover {
+            color: var(--color-accent-hover);
+            text-decoration: underline;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: var(--spacing-sm);
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Button loading state */
+        .btn-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Messages */
+        .text-error {
+            color: var(--color-error);
+            font-size: 14px;
+            margin-top: var(--spacing-sm);
+            text-align: center;
+            padding: var(--spacing-sm);
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .text-success {
+            color: var(--color-success);
+            font-size: 14px;
+            margin-top: var(--spacing-sm);
+            text-align: center;
+            padding: var(--spacing-sm);
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        /* Utility */
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-gray {
+            color: var(--color-text-secondary);
+        }
+
+        .mt-6 {
+            margin-top: var(--spacing-lg);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .app-container {
+                padding: var(--spacing-md);
+            }
+            
+            .auth-card {
+                max-width: 100%;
+                padding: var(--spacing-lg);
+            }
+        }
+
+        @media (max-height: 600px) {
+            .app-container {
+                align-items: flex-start;
+                padding-top: var(--spacing-lg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="bg-effects">
+        <div class="glow-center"></div>
+        <div class="floating-blur-1"></div>
+        <div class="floating-blur-2"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Login Form -->
+        <div id="loginForm" class="auth-card">
+            <div class="logo">
+                <svg class="logo-icon" fill="none" viewBox="0 0 32 32">
+                    <circle cx="16" cy="16" r="16" fill="#4A9EFF" />
+                    <path d="M16 8c4 0 8 2 8 8s-4 8-8 8-8-2-8-8 4-8 8-8z" fill="#fff" />
+                </svg>
+                <span class="logo-text">TechCrop AI</span>
+            </div>
+            
+            <div class="access-notice">
+                <div class="access-notice-text">
+                    <svg style="width: 16px; height: 16px; display: inline-block; margin-right: 8px; vertical-align: middle;" viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Authentication required to access AI Chat
+                </div>
+            </div>
+            
+            <h2 class="title">Welcome Back</h2>
+            <p class="subtitle">Please sign in to continue to EmWell AI Chat.</p>
+            
+            <form class="form" id="loginFormElement">
+                <input type="text" id="loginUsername" class="input" placeholder="Username" required>
+                <div class="input-group">
+                    <input type="password" id="loginPassword" class="input has-icon" placeholder="Password" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)">
+                        <svg class="eye-open" viewBox="0 0 24 24">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg class="eye-closed hidden" viewBox="0 0 24 24">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="text-right">
+                    <button type="button" class="btn-link">Forgot Password?</button>
+                </div>
+                <button type="submit" class="btn-primary" id="loginBtn">
+                    <span id="loginBtnText">Sign In</span>
+                </button>
+                <div id="loginError" class="text-error hidden"></div>
+                <div id="loginSuccess" class="text-success hidden"></div>
+            </form>
+            
+            <div class="mt-6 text-gray text-sm text-center">
+                Don't have an account? <button class="btn-link" id="showRegisterBtn">Create Account</button>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerForm" class="auth-card hidden">
+            <div class="logo">
+                <svg class="logo-icon" fill="none" viewBox="0 0 32 32">
+                    <circle cx="16" cy="16" r="16" fill="#4A9EFF" />
+                    <path d="M16 8c4 0 8 2 8 8s-4 8-8 8-8-2-8-8 4-8 8-8z" fill="#fff" />
+                </svg>
+                <span class="logo-text">TechCrop AI</span>
+            </div>
+            
+            <div class="access-notice">
+                <div class="access-notice-text">
+                    <svg style="width: 16px; height: 16px; display: inline-block; margin-right: 8px; vertical-align: middle;" viewBox="0 0 24 24" fill="none">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                        <line x1="20" y1="8" x2="20" y2="14" stroke="currentColor" stroke-width="2"/>
+                        <line x1="23" y1="11" x2="17" y2="11" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Create account to access AI Chat
+                </div>
+            </div>
+            
+            <h2 class="title">Create Account</h2>
+            <p class="subtitle">Join EmWell AI to access the AI Chat interface.</p>
+            
+            <form class="form" id="registerFormElement">
+                <input type="text" id="registerName" class="input" placeholder="Full Name" required>
+                <input type="email" id="registerEmail" class="input" placeholder="Email Address" required>
+                <input type="text" id="registerUsername" class="input" placeholder="Username" required>
+                <div class="input-group">
+                    <input type="password" id="registerPassword" class="input has-icon" placeholder="Password (min 6 characters)" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword('registerPassword', this)">
+                        <svg class="eye-open" viewBox="0 0 24 24">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg class="eye-closed hidden" viewBox="0 0 24 24">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </button>
+                </div>
+                <input type="password" id="registerConfirmPassword" class="input" placeholder="Confirm Password" required>
+                <button type="submit" class="btn-primary" id="registerBtn">
+                    <span id="registerBtnText">Create Account</span>
+                </button>
+                <div id="registerError" class="text-error hidden"></div>
+                <div id="registerSuccess" class="text-success hidden"></div>
+            </form>
+            
+            <div class="mt-6 text-gray text-sm text-center">
+                Already have an account? <button class="btn-link" id="showLoginBtn">Sign In</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL - Points to Flask backend
+        const API_BASE = '/api/auth';
+        
+        // EmWell AI App URL - Points to Flask home route
+        const HEADTTS_URL = '/home';
+
+        // DOM Elements
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginFormElement = document.getElementById('loginFormElement');
+        const registerFormElement = document.getElementById('registerFormElement');
+        const loginError = document.getElementById('loginError');
+        const registerError = document.getElementById('registerError');
+        const loginSuccess = document.getElementById('loginSuccess');
+        const registerSuccess = document.getElementById('registerSuccess');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const loginBtnText = document.getElementById('loginBtnText');
+        const registerBtnText = document.getElementById('registerBtnText');
+
+        // Debug: Check if elements are found
+        console.log('DOM Elements found:', {
+            loginForm: !!loginForm,
+            registerForm: !!registerForm,
+            loginFormElement: !!loginFormElement,
+            registerFormElement: !!registerFormElement
+        });
+
+        // Navigation Functions
+        function showLogin() {
+            console.log('showLogin() called');
+            console.log('loginForm:', loginForm);
+            console.log('registerForm:', registerForm);
+            
+            if (loginForm && registerForm) {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                clearMessages();
+                console.log('Switched to login form');
+            } else {
+                console.error('Forms not found!');
+            }
+        }
+
+        function showRegister() {
+            console.log('showRegister() called');
+            console.log('loginForm:', loginForm);
+            console.log('registerForm:', registerForm);
+            
+            if (loginForm && registerForm) {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                clearMessages();
+                console.log('Switched to register form');
+            } else {
+                console.error('Forms not found!');
+            }
+        }
+        function clearMessages() {
+            loginError.classList.add('hidden');
+            registerError.classList.add('hidden');
+            loginSuccess.classList.add('hidden');
+            registerSuccess.classList.add('hidden');
+            loginError.textContent = '';
+            registerError.textContent = '';
+            loginSuccess.textContent = '';
+            registerSuccess.textContent = '';
+        }
+
+        function showLoading(isLogin = true) {
+            const btn = isLogin ? loginBtn : registerBtn;
+            const btnText = isLogin ? loginBtnText : registerBtnText;
+            
+            btn.disabled = true;
+            btnText.innerHTML = '<div class="spinner"></div>Authenticating...';
+            btnText.className = 'btn-loading';
+        }
+
+        function hideLoading(isLogin = true) {
+            const btn = isLogin ? loginBtn : registerBtn;
+            const btnText = isLogin ? loginBtnText : registerBtnText;
+            
+            btn.disabled = false;
+            btnText.textContent = isLogin ? 'Sign In' : 'Create Account';
+            btnText.className = '';
+        }
+
+        // Password visibility toggle
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            const eyeOpen = button.querySelector('.eye-open');
+            const eyeClosed = button.querySelector('.eye-closed');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeOpen.classList.add('hidden');
+                eyeClosed.classList.remove('hidden');
+            } else {
+                input.type = 'password';
+                eyeOpen.classList.remove('hidden');
+                eyeClosed.classList.add('hidden');
+            }
+        }
+
+        // API Functions
+        async function apiRequest(endpoint, data) {
+            try {
+                console.log(`Making API request to: ${API_BASE}${endpoint}`);
+                console.log('Request data:', data);
+                
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                    timeout: 10000 // 10 second timeout
+                });
+                
+                console.log('Response status:', response.status);
+                
+                const result = await response.json();
+                console.log('Response data:', result);
+                
+                if (!response.ok) {
+                    throw new Error(result.message || `HTTP ${response.status}: Request failed`);
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('API Request Error:', error);
+                
+                // Handle network errors
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    throw new Error('Unable to connect to server. Please ensure the backend is running on port 5000.');
+                }
+                
+                // Handle timeout errors
+                if (error.name === 'AbortError') {
+                    throw new Error('Request timed out. Please try again.');
+                }
+                
+                throw error;
+            }
+        }
+        // Demo mode fallback (when backend is not available)
+        function createDemoUser(userData) {
+            const demoUser = {
+                id: 'demo_' + Date.now(),
+                name: userData.name,
+                email: userData.email,
+                username: userData.username,
+                gender: 'Not specified',
+                age: 25,
+                createdAt: new Date().toISOString()
+            };
+            
+            const demoToken = 'demo_token_' + Date.now();
+            
+            return {
+                success: true,
+                message: 'Demo account created successfully.',
+                token: demoToken,
+                user: demoUser
+            };
+        }
+
+        function loginDemoUser(credentials) {
+            // Simple demo validation
+            if (credentials.username === 'demo' && credentials.password === 'demo123') {
+                const demoUser = {
+                    id: 'demo_user',
+                    name: 'Demo User',
+                    email: 'demo@emwellai.com',
+                    username: 'demo',
+                    gender: 'Other',
+                    age: 25
+                };
+                
+                return {
+                    success: true,
+                    message: 'Demo login successful.',
+                    token: 'demo_token_' + Date.now(),
+                    user: demoUser
+                };
+            }
+            
+            throw new Error('Demo credentials: username="demo", password="demo123"');
+        }
+
+        // Redirect to EmWell AI with authentication
+        function redirectToHeadTTS(user) {
+            // Store authentication data
+            localStorage.setItem('headtts_auth', JSON.stringify({
+                authenticated: true,
+                user: user,
+                timestamp: Date.now()
+            }));
+            
+            const token = localStorage.getItem('temp_token') || 'demo_token';
+            localStorage.setItem('token', token);
+            localStorage.setItem('user', JSON.stringify(user));
+            
+            // Show success message
+            const successMsg = `Welcome ${user.name}! Redirecting to EmWell AI Chat...`;
+            if (loginForm.classList.contains('hidden')) {
+                registerSuccess.textContent = successMsg;
+                registerSuccess.classList.remove('hidden');
+            } else {
+                loginSuccess.textContent = successMsg;
+                loginSuccess.classList.remove('hidden');
+            }
+            
+            // Redirect with token as URL parameter
+            setTimeout(() => {
+                window.location.href = `${HEADTTS_URL}?token=${encodeURIComponent(token)}`;
+            }, 2000);
+        }
+        // Login Handler
+        loginFormElement.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearMessages();
+            showLoading(true);
+
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            // Set a timeout to prevent getting stuck
+            const timeoutId = setTimeout(() => {
+                hideLoading(true);
+                loginError.textContent = 'Request timed out. Please try again.';
+                loginError.classList.remove('hidden');
+            }, 15000); // 15 second timeout
+
+            try {
+                const result = await apiRequest('/login', { username, password });
+                
+                clearTimeout(timeoutId); // Clear timeout on success
+                
+                // Store token for API access
+                localStorage.setItem('temp_token', result.token);
+                
+                // Redirect to EmWell AI
+                redirectToHeadTTS(result.user);
+                
+            } catch (error) {
+                clearTimeout(timeoutId); // Clear timeout on error
+                hideLoading(true);
+                
+                console.error('Login error:', error);
+                
+                // Check if it's a connection error and offer demo mode
+                if (error.message.includes('Unable to connect to server') || error.message.includes('Request timed out')) {
+                    try {
+                        // Try demo login
+                        const demoResult = loginDemoUser({ username, password });
+                        localStorage.setItem('temp_token', demoResult.token);
+                        redirectToHeadTTS(demoResult.user);
+                        return;
+                    } catch (demoError) {
+                        loginError.innerHTML = `
+                            <div><strong>Backend server not running.</strong></div>
+                            <div style="margin-top: 8px; font-size: 12px;">
+                                <strong>Demo Mode:</strong> Use username="demo" and password="demo123"<br>
+                                <strong>Or start backend:</strong> cd HeadTTS && python app.py
+                            </div>
+                        `;
+                    }
+                } else {
+                    loginError.textContent = error.message || 'Login failed. Please try again.';
+                }
+                
+                loginError.classList.remove('hidden');
+            }
+        });
+
+        // Register Handler
+        registerFormElement.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearMessages();
+            showLoading(false);
+
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const username = document.getElementById('registerUsername').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+
+            // Client-side validation
+            if (password !== confirmPassword) {
+                hideLoading(false);
+                registerError.textContent = 'Passwords do not match.';
+                registerError.classList.remove('hidden');
+                return;
+            }
+
+            if (password.length < 6) {
+                hideLoading(false);
+                registerError.textContent = 'Password must be at least 6 characters long.';
+                registerError.classList.remove('hidden');
+                return;
+            }
+
+            // Set a timeout to prevent getting stuck
+            const timeoutId = setTimeout(() => {
+                hideLoading(false);
+                registerError.textContent = 'Request timed out. Please try again.';
+                registerError.classList.remove('hidden');
+            }, 15000); // 15 second timeout
+
+            try {
+                const result = await apiRequest('/register', {
+                    name,
+                    email,
+                    username,
+                    password
+                });
+                
+                clearTimeout(timeoutId); // Clear timeout on success
+                
+                // Registration successful - token is already provided
+                if (result.success && result.token) {
+                    registerSuccess.textContent = 'Account created successfully! Redirecting...';
+                    registerSuccess.classList.remove('hidden');
+                    
+                    // Store token and redirect directly (no need for auto-login)
+                    localStorage.setItem('temp_token', result.token);
+                    
+                    setTimeout(() => {
+                        redirectToHeadTTS(result.user);
+                    }, 1500);
+                } else {
+                    hideLoading(false);
+                    registerError.textContent = result.message || 'Registration failed. Please try again.';
+                    registerError.classList.remove('hidden');
+                }
+                
+            } catch (error) {
+                clearTimeout(timeoutId); // Clear timeout on error
+                hideLoading(false);
+                
+                console.error('Registration error:', error);
+                
+                // Check if it's a connection error and offer demo mode
+                if (error.message.includes('Unable to connect to server')) {
+                    try {
+                        // Create demo user
+                        const demoResult = createDemoUser({ name, email, username });
+                        localStorage.setItem('temp_token', demoResult.token);
+                        redirectToHeadTTS(demoResult.user);
+                        return;
+                    } catch (demoError) {
+                        registerError.innerHTML = `
+                            <div><strong>Backend server not running.</strong></div>
+                            <div style="margin-top: 8px; font-size: 12px;">
+                                <strong>Demo Mode:</strong> Account created locally (data won't persist)<br>
+                                <strong>For real accounts:</strong> cd HeadTTS && python app.py
+                            </div>
+                        `;
+                    }
+                } else {
+                    registerError.textContent = error.message || 'Registration failed. Please try again.';
+                }
+                
+                registerError.classList.remove('hidden');
+            }
+        });
+
+        // Check if user is already authenticated
+        function checkExistingAuth() {
+            console.log('checkExistingAuth() called');
+            
+            // Prevent infinite loops by checking if we just came from dashboard
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromDashboard = urlParams.get('source') === 'dashboard';
+            
+            if (fromDashboard) {
+                console.log('Came from dashboard - clearing auth and showing login');
+                localStorage.removeItem('headtts_auth');
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('temp_token');
+                showLogin();
+                return;
+            }
+            
+            const token = localStorage.getItem('token');
+            const headttsAuth = localStorage.getItem('headtts_auth');
+            
+            console.log('Auth check:', { token: !!token, headttsAuth: !!headttsAuth });
+            
+            if (token && headttsAuth) {
+                try {
+                    const authData = JSON.parse(headttsAuth);
+                    // Check if auth is still valid (24 hours)
+                    const isValid = (Date.now() - authData.timestamp) < (24 * 60 * 60 * 1000);
+                    
+                    console.log('Auth data:', { isValid, authenticated: authData.authenticated });
+                    
+                    if (isValid && authData.authenticated) {
+                        console.log('Valid auth found, redirecting to dashboard...');
+                        // User is already authenticated, redirect with token
+                        window.location.href = `${HEADTTS_URL}?token=${encodeURIComponent(token)}`;
+                        return;
+                    }
+                } catch (e) {
+                    console.log('Invalid auth data, clearing:', e);
+                    // Invalid auth data, clear it
+                    localStorage.removeItem('headtts_auth');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                }
+            }
+            
+            console.log('No valid auth, showing login form');
+            // Show login form
+            showLogin();
+        }
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, initializing...');
+            
+            // Make functions globally available
+            window.showLogin = showLogin;
+            window.showRegister = showRegister;
+            
+            // Add event listeners for navigation buttons
+            const showRegisterBtn = document.getElementById('showRegisterBtn');
+            const showLoginBtn = document.getElementById('showLoginBtn');
+            
+            if (showRegisterBtn) {
+                showRegisterBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Create Account button clicked');
+                    showRegister();
+                });
+                console.log('✓ Create Account button listener attached');
+            } else {
+                console.error('✗ Create Account button not found');
+            }
+            
+            if (showLoginBtn) {
+                showLoginBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Sign In button clicked');
+                    showLogin();
+                });
+                console.log('✓ Sign In button listener attached');
+            } else {
+                console.error('✗ Sign In button not found');
+            }
+            
+            console.log('Functions attached to window:', {
+                showLogin: window.showLogin,
+                showRegister: window.showRegister
+            });
+            
+            // Prevent rapid auth checks
+            const lastAuthCheck = localStorage.getItem('last_auth_check');
+            const now = Date.now();
+            
+            if (!lastAuthCheck || (now - parseInt(lastAuthCheck)) > 2000) {
+                localStorage.setItem('last_auth_check', now.toString());
+                checkExistingAuth();
+            } else {
+                console.log('Skipping auth check - too recent');
+                showLogin();
+            }
+        });
+
+        // Handle browser back/forward - but with rate limiting
+        window.addEventListener('popstate', () => {
+            const lastAuthCheck = localStorage.getItem('last_auth_check');
+            const now = Date.now();
+            
+            if (!lastAuthCheck || (now - parseInt(lastAuthCheck)) > 2000) {
+                localStorage.setItem('last_auth_check', now.toString());
+                checkExistingAuth();
+            } else {
+                console.log('Skipping popstate auth check - too recent');
+            }
+        });
+
+        // Prevent direct access to EmWell AI without authentication
+        window.addEventListener('beforeunload', () => {
+            // This will be checked by the TechCrop AI index.html
+            sessionStorage.setItem('auth_check_timestamp', Date.now().toString());
+        });
+    </script>
+</body>
+</html>
