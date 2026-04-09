@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Fitness Sanctuary | Verdant Solace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#d5dcd0",
+                        "primary": "#436745",
+                        "on-surface-variant": "#596158",
+                        "secondary": "#526451",
+                        "error": "#a73b21",
+                        "primary-container": "#c4edc2",
+                        "on-primary-container": "#365a39",
+                        "error-dim": "#791903",
+                        "secondary-dim": "#465845",
+                        "on-primary-fixed": "#244728",
+                        "tertiary-fixed": "#f8ffbc",
+                        "inverse-on-surface": "#9b9e98",
+                        "background": "#f8faf3",
+                        "surface-bright": "#f8faf3",
+                        "surface": "#f8faf3",
+                        "outline-variant": "#acb4a9",
+                        "error-container": "#fd795a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#4e604e",
+                        "surface-container": "#eaf0e5",
+                        "on-error-container": "#6e1400",
+                        "secondary-fixed": "#d4e8d0",
+                        "tertiary-container": "#f8ffbc",
+                        "primary-dim": "#375b3a",
+                        "outline": "#757d73",
+                        "on-secondary": "#eaffe6",
+                        "tertiary": "#5d632f",
+                        "tertiary-fixed-dim": "#eaf0af",
+                        "on-surface": "#2d342c",
+                        "surface-variant": "#dde5d9",
+                        "surface-tint": "#436745",
+                        "secondary-container": "#d4e8d0",
+                        "on-tertiary": "#f8febc",
+                        "surface-container-high": "#e4eadf",
+                        "on-background": "#2d342c",
+                        "on-error": "#fff7f6",
+                        "inverse-primary": "#d4ffd2",
+                        "inverse-surface": "#0c0f0b",
+                        "on-primary-fixed-variant": "#406442",
+                        "on-tertiary-container": "#5d632f",
+                        "primary-fixed-dim": "#b6dfb4",
+                        "on-primary": "#e9ffe5",
+                        "on-secondary-container": "#455644",
+                        "surface-container-low": "#f1f5ec",
+                        "on-tertiary-fixed": "#4b501f",
+                        "tertiary-dim": "#515724",
+                        "surface-container-highest": "#dde5d9",
+                        "secondary-fixed-dim": "#c6dac3",
+                        "on-tertiary-fixed-variant": "#676e39",
+                        "on-secondary-fixed": "#334333",
+                        "primary-fixed": "#c4edc2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-panel { backdrop-filter: blur(24px); background-color: rgba(248, 250, 243, 0.7); }
+        .botanical-shadow { box-shadow: 0px 20px 40px rgba(45, 52, 44, 0.06); }
+        .primary-gradient { background: linear-gradient(145deg, #436745, #375b3a); }
+    </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-primary-container">
+<!-- SideNavBar (Desktop) -->
+<aside class="hidden md:flex flex-col h-screen w-72 fixed left-0 top-0 bg-[#f1f5ec] dark:bg-stone-900 z-40">
+<div class="flex flex-col h-full py-12">
+<div class="px-8 mb-12">
+<h1 class="text-xl font-bold text-[#2d342c] dark:text-[#f8faf3] tracking-tighter">Verdant Solace</h1>
+<p class="text-xs text-on-surface-variant uppercase tracking-widest mt-1">The Living Sanctuary</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center text-[#596158] dark:text-[#dde5d9] py-4 px-8 hover:bg-[#dde5d9]/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined mr-4">spa</span>
+<span class="font-medium">Sanctuary</span>
+</a>
+<a class="flex items-center text-[#596158] dark:text-[#dde5d9] py-4 px-8 hover:bg-[#dde5d9]/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined mr-4">energy_savings_leaf</span>
+<span class="font-medium">Growth</span>
+</a>
+<a class="flex items-center bg-[#dde5d9] dark:bg-stone-800 text-[#2d342c] dark:text-[#f8faf3] rounded-r-full py-4 px-8 ml-0" href="#">
+<span class="material-symbols-outlined mr-4">fitness_center</span>
+<span class="font-medium">Fitness</span>
+</a>
+<a class="flex items-center text-[#596158] dark:text-[#dde5d9] py-4 px-8 hover:bg-[#dde5d9]/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined mr-4">self_improvement</span>
+<span class="font-medium">Rituals</span>
+</a>
+<a class="flex items-center text-[#596158] dark:text-[#dde5d9] py-4 px-8 hover:bg-[#dde5d9]/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined mr-4">groups</span>
+<span class="font-medium">Community</span>
+</a>
+</nav>
+<div class="px-8 mt-auto">
+<button class="w-full primary-gradient text-on-primary py-4 px-6 rounded-full font-bold transition-all hover:opacity-90 active:scale-95">
+                    Begin Practice
+                </button>
+</div>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-[#f8faf3]/70 dark:bg-stone-900/70 backdrop-blur-xl md:pl-72">
+<div class="flex justify-between items-center px-6 md:px-12 py-6 w-full mx-auto">
+<div class="flex items-center gap-8">
+<span class="md:hidden text-2xl font-bold tracking-tighter text-[#2d342c]">Verdant Solace</span>
+<nav class="hidden md:flex gap-8">
+<a class="text-[#596158] hover:text-[#436745] transition-colors duration-300 font-medium" href="#">Sanctuary</a>
+<a class="text-[#596158] hover:text-[#436745] transition-colors duration-300 font-medium" href="#">Growth</a>
+<a class="text-[#436745] border-b-2 border-[#436745] pb-1 font-medium" href="#">Fitness</a>
+<a class="text-[#596158] hover:text-[#436745] transition-colors duration-300 font-medium" href="#">Rituals</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-[#436745] hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-[#436745] hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<img alt="User profile" class="w-10 h-10 rounded-full object-cover botanical-shadow" data-alt="close-up portrait of a serene woman with natural skin and minimalist aesthetic in soft daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChftvuDLdHxtVAViKDLl0TlC9Y84pTyM2msP1uI2_XzSy5PY9W54MQ7c9OjsXDSF9OVedoUssnCG_yDlVF9SkiiwVP3dvoBTCCmmFgPqPSBflHcYSSFQ3Uf07y7dvdqHqpQe6cdpbmJ3JprYx5huyRw3_OsGpUhVB9maaAQoo9amfdyIYpZrzjG3vqWsIZudcZxh6ZbO_XW27oFZEmUzwLAVgS95dabwJrgDSS7T5nZ1zKqRtwfuEJRFpJ7kNTcgaJeEGk0RF4Uzw"/>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="pt-32 pb-24 md:pl-72 min-h-screen px-6 md:px-16">
+<div class="max-w-6xl mx-auto space-y-24">
+<!-- Hero Introduction -->
+<section class="space-y-4">
+<h2 class="text-5xl md:text-7xl font-bold tracking-tighter text-on-surface leading-tight">Fitness Sanctuary</h2>
+<p class="text-xl text-on-surface-variant max-w-2xl leading-relaxed">
+                    Sculpt your body with intentionality. Choose your focus and intensity to begin a practice tailored to your current energy.
+                </p>
+</section>
+<!-- Step 1: Select Your Focus -->
+<section class="space-y-12">
+<div class="flex items-end justify-between">
+<div>
+<span class="text-sm font-bold uppercase tracking-widest text-primary mb-2 block">Step 01</span>
+<h3 class="text-4xl font-bold text-on-surface">Select Your Focus</h3>
+</div>
+<p class="text-on-surface-variant italic">Choose one or more areas to target</p>
+</div>
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Muscle Group Cards -->
+<button class="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface-container-low transition-all duration-500 hover:bg-primary-container/30 ring-2 ring-primary">
+<img alt="Legs workout" class="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-40 group-hover:opacity-60 transition-opacity" data-alt="close-up of powerful runner legs in motion on a misty morning track with soft atmospheric lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZ_wGH_iiOxu-viBV9qS5_TFaFMZSvpCEQHxDc7rQNt6NMj1Y2F4tq4Az8o3F7VFKor-bK9JJXlNt43oV9fuuf2dhPVZSrJH1WTeXE4a_rIf-irWrB4pZoagJkHFNWeoEDnrmhuSnToY0C3MtpIkQYGMSASLhOoOrPse9K-OHnTHKCRVfRA37IaF26OBUXUrRfyNYkyEfOpV9vB_l-KHbmV_2YgYUzxLv1kF6SQFRgTOUAY-FWTcIPZPjSHr0zGiRdy8F_8HoCifE"/>
+<div class="absolute inset-0 p-8 flex flex-col justify-end">
+<span class="material-symbols-outlined text-4xl mb-4 text-primary" data-weight="fill">fitness_center</span>
+<h4 class="text-2xl font-bold text-on-surface">Legs</h4>
+<p class="text-on-surface-variant">Selected</p>
+</div>
+<div class="absolute top-6 right-6 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-xl">check</span>
+</div>
+</button>
+<button class="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface-container-low transition-all duration-500 hover:bg-primary-container/30">
+<img alt="Chest workout" class="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-20 group-hover:opacity-40 transition-opacity" data-alt="dramatic lighting on a person performing a chest exercise in a high-end minimalist gym setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFNJrHDC30HhXrWj72G3G4Jsb9vtS7fWaPzP3QvVCelXk2hIp5JeszE6ZcJ8soVidJ1IHaQTlQ1a0X-2HBmAc_8OHhhHNkYZqmq5ju9uzbQ7Budf5KN8qiYYghH3qxgrWY9xZCFkb1AZsTocuUh20XK28D7_vqxyAIiEWSDXUPOP6372aeYfWmZ9AmTEXLn2PVlIanGTa87f-GOeJhmboSuH2sSLG9rKYtE0SfYsjYSHFNHKAYWprGQqZlQNEWGdlw72ZBnP5UFIk"/>
+<div class="absolute inset-0 p-8 flex flex-col justify-end">
+<span class="material-symbols-outlined text-4xl mb-4 text-on-surface-variant">pool</span>
+<h4 class="text-2xl font-bold text-on-surface">Chest</h4>
+<p class="text-on-surface-variant">Focus area</p>
+</div>
+</button>
+<button class="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface-container-low transition-all duration-500 hover:bg-primary-container/30">
+<img alt="Core workout" class="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-20 group-hover:opacity-40 transition-opacity" data-alt="abstract artistic close up of midsection during core training with soft natural light shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRwYol7GIGKa1YTSPFNoa5gNSolYPSUKG7inPmPv1vZ51wbXW-4ZfvDJEBa20Rj9rzFgkM7OWCNd8NC7KsT7TZ0pzBFBOG1zsfLuEnbCPTjWmaWzVIrwyR7Is8Z6SGxAOA-GkD1AXqlJ6sx6AzBUOIHsOA92BiCKq4Tc3SLYxyKl6nh0ixgPwL0ljRLtNgQ1YQPxuchDeIj0qbA9QsYUquyt2UPpsm3G2DPpnTEAql-WPLEbTRNdykxdO-8gJNm-4z3VoQIVOWwaA"/>
+<div class="absolute inset-0 p-8 flex flex-col justify-end">
+<span class="material-symbols-outlined text-4xl mb-4 text-on-surface-variant">self_improvement</span>
+<h4 class="text-2xl font-bold text-on-surface">Core</h4>
+<p class="text-on-surface-variant">Stabilization</p>
+</div>
+</button>
+<button class="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface-container-low transition-all duration-500 hover:bg-primary-container/30">
+<img alt="Back workout" class="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-20 group-hover:opacity-40 transition-opacity" data-alt="strong back silhouette against a warm sunlit window in a peaceful yoga studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-WDAs_zkgqIHLb-cuc1uIMylKrnR1NtifKqxfksTmOW2Q1N6GOl1Nkr90GHfLtSitGV9cS2YgSUj1J_LbrLXQZmRqoHEhM8649USvsJdbdzf3VPLLEYi5BKamKrGWFjNV7O1KNIRYZHfPuUgNB-qE9VPkl53SB6b1J20ZIi8YxCr4JsFQ-qIamF1NTguAaopZ12S9yCfUj1EH4-xmiTPYLva_w6-USdv3BAtRyu_avmfjgf6j33kO0KdyX2Ex8CRYsLipk2YzCu8"/>
+<div class="absolute inset-0 p-8 flex flex-col justify-end">
+<span class="material-symbols-outlined text-4xl mb-4 text-on-surface-variant">eco</span>
+<h4 class="text-2xl font-bold text-on-surface">Back</h4>
+<p class="text-on-surface-variant">Posture &amp; Strength</p>
+</div>
+</button>
+<button class="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface-container-low transition-all duration-500 hover:bg-primary-container/30">
+<img alt="Shoulders workout" class="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-20 group-hover:opacity-40 transition-opacity" data-alt="close up of toned shoulders and neck in a serene environment with elegant lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhMQkRln7I1vA7aVIFS2u8-0KPQDmz-kPcg_MkAdRWcTXWz3Ehp8jvtwB2Pgu9kqqQyX-DrTMdI-un1A_PHLVPdnM-OSJWRfVyMEty17Hnbl1-gP3t33i7hP1oAtxyvKxDN5e89Vq5tdvuQUZS0dECqI64IqIahKMVaODSeiHIMCCVrLjjNDGlzEKve4gnaFF4pWxvZUsbJvEVUB56Qyp-OkhgiqcIMhftyPLQsm7EWTIUo26lz9aaI0pY3MOSqTDmPG3sO3HTvYk"/>
+<div class="absolute inset-0 p-8 flex flex-col justify-end">
+<span class="material-symbols-outlined text-4xl mb-4 text-on-surface-variant">nature_people</span>
+<h4 class="text-2xl font-bold text-on-surface">Shoulders</h4>
+<p class="text-on-surface-variant">Mobility</p>
+</div>
+</button>
+<button class="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface-container-low transition-all duration-500 hover:bg-primary-container/30">
+<img alt="Arms workout" class="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-20 group-hover:opacity-40 transition-opacity" data-alt="defined arm muscles lifting a wooden weight in a sun-drenched outdoor garden setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCf1OowzTwsw-L0b3dKWGIHXIfrUXfrtbqMR49YLSteu9i2t4SqU1y-es8NdGFNmHEOJfeSmIcLFD5Vdfatrjttxbqn7CD5zE_Rf4x7ryKF-zMaD6DOVdTyfCPa40GNadGeadyw2qIw4cXXVOyHsPlKNwal3qoO9Z49NsPMpQ4NI7YBQc1keXlpaJNm9DRxiNGbPCtnRRCRFYISL-QPifRuIAQJWR7emKl4Dh9A2PItPvxnWo2kdn1BkdLEUimfDK4-PsQINRG8NPg"/>
+<div class="absolute inset-0 p-8 flex flex-col justify-end">
+<span class="material-symbols-outlined text-4xl mb-4 text-on-surface-variant">bolt</span>
+<h4 class="text-2xl font-bold text-on-surface">Arms</h4>
+<p class="text-on-surface-variant">Power &amp; Form</p>
+</div>
+</button>
+</div>
+</section>
+<!-- Step 2: Choose Intensity -->
+<section class="space-y-12">
+<div>
+<span class="text-sm font-bold uppercase tracking-widest text-primary mb-2 block">Step 02</span>
+<h3 class="text-4xl font-bold text-on-surface">Choose Intensity</h3>
+</div>
+<div class="flex flex-col md:flex-row gap-8">
+<button class="flex-1 bg-primary-container border-2 border-primary rounded-3xl p-10 text-left botanical-shadow transition-transform hover:-translate-y-2">
+<div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-on-primary">wb_sunny</span>
+</div>
+<h4 class="text-2xl font-extrabold text-on-primary-container mb-2">Gentle</h4>
+<p class="text-on-primary-container/80 mb-6">Beginner. Focus on form, breathing, and steady foundation building.</p>
+<span class="inline-flex items-center text-primary font-bold">Selected <span class="material-symbols-outlined ml-2">check_circle</span></span>
+</button>
+<button class="flex-1 bg-surface-container-low rounded-3xl p-10 text-left transition-all duration-300 hover:bg-surface-container-high hover:-translate-y-1">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-on-secondary-container">trending_up</span>
+</div>
+<h4 class="text-2xl font-extrabold text-on-surface mb-2">Steady</h4>
+<p class="text-on-surface-variant mb-6">Intermediate. Increase volume and complexity for consistent growth.</p>
+<span class="inline-flex items-center text-on-surface-variant font-medium">Choose Path <span class="material-symbols-outlined ml-2">arrow_forward</span></span>
+</button>
+<button class="flex-1 bg-surface-container-low rounded-3xl p-10 text-left transition-all duration-300 hover:bg-surface-container-high hover:-translate-y-1">
+<div class="w-12 h-12 rounded-full bg-error-container/20 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-error">local_fire_department</span>
+</div>
+<h4 class="text-2xl font-extrabold text-on-surface mb-2">Vigorous</h4>
+<p class="text-on-surface-variant mb-6">Hardcore. High intensity pushing boundaries of endurance and power.</p>
+<span class="inline-flex items-center text-on-surface-variant font-medium">Choose Path <span class="material-symbols-outlined ml-2">arrow_forward</span></span>
+</button>
+</div>
+</section>
+<!-- Step 3: Exercise Selection -->
+<section class="space-y-12">
+<div class="flex items-end justify-between">
+<div>
+<span class="text-sm font-bold uppercase tracking-widest text-primary mb-2 block">Step 03</span>
+<h3 class="text-4xl font-bold text-on-surface">Exercise Selection</h3>
+<p class="text-on-surface-variant mt-2">Recommended for Legs • Gentle</p>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-[2rem] p-4 md:p-10 space-y-6">
+<!-- Exercise List Item -->
+<div class="flex items-center justify-between p-6 bg-surface-container-lowest rounded-2xl group hover:shadow-lg transition-shadow duration-300">
+<div class="flex items-center gap-8">
+<div class="w-20 h-20 rounded-xl overflow-hidden hidden sm:block">
+<img alt="Squats" class="w-full h-full object-cover" data-alt="zen-like gym scene focusing on wooden equipment and natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxqCZBmWuUxtedyJz2Asy3KbcghnceWUf_qml3ZHz2m0cogBNnMK7Jbiapg1Q4Jq1i1zwS4tPBHqPzZMVPLrZnebfVrOY2wUotJnu6ETi9zjiWnbG0iKNpdCJSkX8gVwHjmYrjxojMnqjDxAKYUGOJS_3A2_vP-KUNhrHmOQlJFvUJyeSmTdJkC5deT6AGZuWF9DE1KzaaC_tKSChBcH-ZvSN4lNABorXP7cdXjLoKcWJgxSM9EaoStkWzY7j42-vupmD0KSmZPvs"/>
+</div>
+<div>
+<h5 class="text-xl font-bold text-on-surface">Bodyweight Squats</h5>
+<div class="flex items-center gap-4 mt-1">
+<span class="flex items-center text-sm text-on-surface-variant"><span class="material-symbols-outlined text-xs mr-1">timer</span> 10 mins</span>
+<span class="flex items-center text-sm text-on-surface-variant"><span class="material-symbols-outlined text-xs mr-1">history</span> 3 Sets / 12 Reps</span>
+</div>
+</div>
+</div>
+<button class="p-3 rounded-full hover:bg-primary-container text-primary transition-colors">
+<span class="material-symbols-outlined">info</span>
+</button>
+</div>
+<div class="flex items-center justify-between p-6 bg-surface-container-lowest rounded-2xl group hover:shadow-lg transition-shadow duration-300">
+<div class="flex items-center gap-8">
+<div class="w-20 h-20 rounded-xl overflow-hidden hidden sm:block">
+<img alt="Wall Sits" class="w-full h-full object-cover" data-alt="abstract close up of texture and shadow against a wall in a peaceful exercise space" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAM3foPtu5FCZ-0cIUN7S_tHbfsyPPDUTlj4BefE4jkNEf99c6m1Z4LWgezKAJifn9-uecJek4fRxpE549_xUTUDvMUBLo-wjDp6ygiGHaSOEBuN7jLKFo5BMpgT8tIehyaU3N2PbweuaQwOzKuNvQEkEiyOz8P1AyJlBx8tWlTrP7j0OIlTMqmyasbaOlkJZHnk3nGtRWIztCCUFnognpnVGHJTZhCH6nifBKzvDOE4SRzCQgsHSwP5aI7Bjq_VrzvU7gYwM4ripc"/>
+</div>
+<div>
+<h5 class="text-xl font-bold text-on-surface">Wall Sits</h5>
+<div class="flex items-center gap-4 mt-1">
+<span class="flex items-center text-sm text-on-surface-variant"><span class="material-symbols-outlined text-xs mr-1">timer</span> 5 mins</span>
+<span class="flex items-center text-sm text-on-surface-variant"><span class="material-symbols-outlined text-xs mr-1">history</span> 3 Sets / 45 Sec</span>
+</div>
+</div>
+</div>
+<button class="p-3 rounded-full hover:bg-primary-container text-primary transition-colors">
+<span class="material-symbols-outlined">info</span>
+</button>
+</div>
+<div class="flex items-center justify-between p-6 bg-surface-container-lowest rounded-2xl group hover:shadow-lg transition-shadow duration-300">
+<div class="flex items-center gap-8">
+<div class="w-20 h-20 rounded-xl overflow-hidden hidden sm:block">
+<img alt="Lunges" class="w-full h-full object-cover" data-alt="minimalist studio floor with morning light casting long shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAafatswgdg6s02rk2r4Auei51P1ZK3WvPEw5MKpDJKxOQbzKI794ElgxBdPyYoHbN9SJgsea0wunNKri4tnAqOHq_Hw9XmgP0t5wXGkjIaLkIf6M9ZQF3MN_7DYlQS3K5HehKLue7YdnfeS1bCepRZFdfjINSRL9Dz0Y8JPwlXmQ7uWyjIfYg80jheCerY5BtdVeRHYQXQ5WX5tHtkNBLS2iifwCPbS5KI0YMQVwW48DraGCpzJBkbGgPo79NVcfWkY9zytQ2to_o"/>
+</div>
+<div>
+<h5 class="text-xl font-bold text-on-surface">Walking Lunges</h5>
+<div class="flex items-center gap-4 mt-1">
+<span class="flex items-center text-sm text-on-surface-variant"><span class="material-symbols-outlined text-xs mr-1">timer</span> 12 mins</span>
+<span class="flex items-center text-sm text-on-surface-variant"><span class="material-symbols-outlined text-xs mr-1">history</span> 2 Sets / 20 Reps</span>
+</div>
+</div>
+</div>
+<button class="p-3 rounded-full hover:bg-primary-container text-primary transition-colors">
+<span class="material-symbols-outlined">info</span>
+</button>
+</div>
+<div class="pt-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+<div class="flex items-center gap-4">
+<div class="bg-primary-container p-4 rounded-2xl">
+<p class="text-xs font-bold uppercase tracking-wider text-on-primary-container">Estimated Effort</p>
+<p class="text-2xl font-bold text-primary">27 Minutes</p>
+</div>
+<div class="bg-secondary-container p-4 rounded-2xl">
+<p class="text-xs font-bold uppercase tracking-wider text-on-secondary-container">Calories Burn</p>
+<p class="text-2xl font-bold text-secondary">~180 kcal</p>
+</div>
+</div>
+<button class="w-full sm:w-auto primary-gradient text-on-primary text-xl font-bold px-12 py-5 rounded-full botanical-shadow transition-all hover:scale-105 active:scale-95">
+                            Start Practice
+                        </button>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-surface/90 backdrop-blur-xl px-6 py-4 flex justify-around items-center z-50 border-t border-outline-variant/10">
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">spa</span>
+<span class="text-[10px] font-bold">Sanctuary</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">energy_savings_leaf</span>
+<span class="text-[10px] font-bold">Growth</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" data-weight="fill">fitness_center</span>
+<span class="text-[10px] font-bold">Fitness</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">self_improvement</span>
+<span class="text-[10px] font-bold">Rituals</span>
+</button>
+</nav>
+</body></html>

@@ -1,0 +1,209 @@
+/* Verdant Solace - Global Styles */
+/* Health Analytics & Insights Design System */
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS Custom Properties */
+:root {
+  /* Primary Colors */
+  --color-primary: #436745;
+  --color-primary-dim: #375b3a;
+  --color-primary-container: #c4edc2;
+  --color-primary-fixed: #c4edc2;
+  --color-primary-fixed-dim: #b6dfb4;
+  --color-on-primary: #e9ffe5;
+  --color-on-primary-container: #365a39;
+
+  /* Secondary Colors */
+  --color-secondary: #526451;
+  --color-secondary-container: #d4e8d0;
+  --color-on-secondary: #eaffe6;
+
+  /* Tertiary Colors */
+  --color-tertiary: #5d632f;
+  --color-tertiary-container: #f8ffbc;
+  --color-on-tertiary: #f8febc;
+
+  /* Error Colors */
+  --color-error: #a73b21;
+  --color-error-container: #fd795a;
+  --color-on-error: #fff7f6;
+
+  /* Surface Colors */
+  --color-surface: #f8faf3;
+  --color-surface-dim: #d5dcd0;
+  --color-surface-bright: #f8faf3;
+  --color-surface-container: #eaf0e5;
+  --color-surface-container-low: #f1f5ec;
+  --color-surface-container-high: #e4eadf;
+  --color-surface-container-highest: #dde5d9;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-variant: #dde5d9;
+  --color-on-surface: #2d342c;
+  --color-on-surface-variant: #596158;
+
+  /* Background */
+  --color-background: #f8faf3;
+  --color-on-background: #2d342c;
+
+  /* Outline */
+  --color-outline: #757d73;
+  --color-outline-variant: #acb4a9;
+
+  /* Inverse */
+  --color-inverse-surface: #0c0f0b;
+  --color-inverse-on-surface: #9b9e98;
+  --color-inverse-primary: #d4ffd2;
+
+  /* Brand Colors */
+  --color-brand-sage: #7DA47D;
+  --color-brand-forest: #526451;
+
+  /* Typography */
+  --font-headline: 'Manrope', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+  --font-label: 'Manrope', sans-serif;
+
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-botanical: 0px 20px 40px rgba(45, 52, 44, 0.06);
+  --shadow-soft: 0px 4px 12px rgba(45, 52, 44, 0.04);
+  --shadow-medium: 0px 8px 24px rgba(45, 52, 44, 0.08);
+  --shadow-large: 0px 16px 48px rgba(45, 52, 44, 0.12);
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(145deg, #436745, #375b3a);
+  --gradient-sage: linear-gradient(135deg, #7DA47D, #436745);
+}
+
+/* Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-headline);
+}
+
+/* Material Icons */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+}
+
+/* Utility Classes */
+.botanical-shadow {
+  box-shadow: var(--shadow-botanical);
+}
+
+.primary-gradient {
+  background: var(--gradient-primary);
+}
+
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-container-low);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-outline);
+}
+
+/* Selection */
+::selection {
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+}
+
+/* Focus Styles */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-surface: #1a1c1a;
+    --color-surface-container: #2d342c;
+    --color-surface-container-low: #242a24;
+    --color-on-surface: #eaf0e5;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

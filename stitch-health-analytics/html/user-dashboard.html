@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Verdant Solace | Your Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        h1, h2, h3, .headline {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#436745",
+              "primary-container": "#dde5d9",
+              "on-primary": "#ffffff",
+              "primary-dim": "#355a37",
+              "surface": "#f8faf3",
+              "on-surface": "#1a1c1a",
+              "surface-container-low": "#f1f5ec",
+              "surface-container-lowest": "#ffffff",
+              "on-surface-variant": "#596158",
+              "secondary": "#7DA47D",
+              "secondary-container": "#f0f4ef",
+              "on-secondary-container": "#436745",
+              "outline": "#737971",
+              "background": "#f8faf3",
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col font-['Manrope']">
+<!-- TopNavBar Implementation from COMPONENTS_8 -->
+<header class="fixed top-0 w-full z-50 bg-[#f8faf3]/70 dark:bg-stone-900/70 backdrop-blur-xl">
+<div class="flex justify-between items-center px-12 py-6 w-full max-w-8xl mx-auto">
+<div class="text-2xl font-bold text-[#436745] dark:text-[#7DA47D] tracking-tight">Verdant Solace</div>
+<nav class="hidden md:flex gap-8 items-center tracking-tight leading-relaxed">
+<a class="text-[#436745] dark:text-[#7DA47D] font-bold border-b-2 border-[#436745] pb-1" href="#">Home</a>
+<a class="text-[#596158] dark:text-stone-400 font-medium hover:text-[#436745] transition-colors duration-300 ease-in-out" href="#">Insights</a>
+<a class="text-[#596158] dark:text-stone-400 font-medium hover:text-[#436745] transition-colors duration-300 ease-in-out" href="#">AI Companion</a>
+<a class="text-[#596158] dark:text-stone-400 font-medium hover:text-[#436745] transition-colors duration-300 ease-in-out" href="#">Recommendations</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined p-2 text-[#596158] hover:text-[#436745] transition-transform scale-95 active:scale-90" data-icon="account_circle">account_circle</button>
+<img alt="User profile avatar" class="w-10 h-10 rounded-full object-cover ring-2 ring-primary-container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMpLKsLjNsmxTbq1feH9u17oGP72v89UuEHlKAe5N2wI66NLRJvF2pl5KuKQb0kciJbYAy7SlrIRpZgo8YVUs7XF93CjTVa_VU0dYmhoTOxGq5PdURwT5W-uPhPy1zByfEsRDPPcDaAI-CHIMsJpnVJyLyoaWfy6eze2CYvAWYXzGmdWkBC2Vm4XPhGELoe0p-GaL20kgYmWGU7M6eMZl2Pg4WIZpxatvK4EDcCv2F_Yboz2BtJonEoSHbi5o9ZCUxJQShGZhIQ1A"/>
+</div>
+</div>
+</header>
+<div class="flex flex-1 pt-24">
+<!-- SideNavBar Implementation from COMPONENTS_8 -->
+<aside class="fixed flex flex-col gap-2 h-screen w-64 left-0 top-0 pt-24 bg-[#f1f5ec] dark:bg-stone-800">
+<div class="px-6 mb-6">
+<p class="text-lg font-bold text-[#436745]">Wellness Tools</p>
+<p class="text-xs text-[#596158]">Your daily sanctuary</p>
+</div>
+<nav class="flex-1 flex flex-col gap-1 font-['Manrope'] text-sm">
+<a class="flex items-center gap-3 bg-[#dde5d9] dark:bg-stone-700 text-[#436745] rounded-r-full p-4 transition-transform translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="face">face</span>
+                Mood
+            </a>
+<a class="flex items-center gap-3 text-[#596158] p-4 hover:bg-[#dde5d9]/50 transition-all duration-300 translate-x-0 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+                Journal
+            </a>
+<a class="flex items-center gap-3 text-[#596158] p-4 hover:bg-[#dde5d9]/50 transition-all duration-300 translate-x-0 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="self_improvement">self_improvement</span>
+                Meditation
+            </a>
+</nav>
+<div class="mt-auto p-6 mb-24">
+<button class="w-full bg-[#436745] text-white py-3 rounded-full font-bold text-sm shadow-md transition-transform active:scale-95">
+                Log Today's Mood
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 lg:ml-64 p-8 md:p-12 max-w-7xl mx-auto w-full">
+<!-- Welcome Section -->
+<section class="mb-16">
+<h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-on-surface mb-4">
+                Take a moment for yourself today, Sarah.
+            </h1>
+<p class="text-lg text-on-surface-variant max-w-2xl leading-relaxed">
+                Welcome back to your sanctuary. Your personal wellness path is ready for exploration. Today is a great day to focus on mindful breathing and hydration.
+            </p>
+</section>
+<!-- Bento Grid Dashboard -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
+<!-- Mood Tracker Card -->
+<div class="md:col-span-8 bg-surface-container-lowest rounded-xl p-8 shadow-sm border border-stone-100 flex flex-col">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h2 class="text-2xl font-bold mb-1">Weekly Resonance</h2>
+<p class="text-sm text-on-surface-variant">Your emotional landscape over the last 7 days</p>
+</div>
+<div class="bg-primary-container text-primary px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider">
+                        Consistent Calm
+                    </div>
+</div>
+<div class="flex-1 min-h-[240px] relative flex items-end justify-between gap-2 pt-4">
+<!-- Simulated Chart Bars with Green Accents -->
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary-container/30 rounded-t-lg h-24 relative overflow-hidden">
+<div class="absolute bottom-0 w-full bg-[#7DA47D]/40 h-16 transition-all"></div>
+</div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Mon</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary-container/30 rounded-t-lg h-32 relative overflow-hidden">
+<div class="absolute bottom-0 w-full bg-[#7DA47D]/40 h-28 transition-all"></div>
+</div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Tue</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary-container/30 rounded-t-lg h-28 relative overflow-hidden">
+<div class="absolute bottom-0 w-full bg-[#7DA47D]/60 h-24 transition-all"></div>
+</div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Wed</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary-container/30 rounded-t-lg h-40 relative overflow-hidden">
+<div class="absolute bottom-0 w-full bg-gradient-to-t from-[#436745] to-[#7DA47D] h-36 transition-all"></div>
+</div>
+<span class="text-[10px] font-bold text-primary uppercase tracking-tighter">Thu</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary-container/30 rounded-t-lg h-24 relative overflow-hidden">
+<div class="absolute bottom-0 w-full bg-[#7DA47D]/40 h-12 transition-all"></div>
+</div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Fri</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary-container/30 rounded-t-lg h-20 relative overflow-hidden">
+<div class="absolute bottom-0 w-full bg-[#7DA47D]/30 h-8 transition-all"></div>
+</div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Sat</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary-container/30 rounded-t-lg h-36 relative overflow-hidden">
+<div class="absolute bottom-0 w-full bg-[#7DA47D]/50 h-30 transition-all"></div>
+</div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Sun</span>
+</div>
+</div>
+</div>
+<!-- Health Snapshot Card -->
+<div class="md:col-span-4 bg-surface-container-low rounded-xl p-8 flex flex-col gap-8">
+<h2 class="text-xl font-bold">Vital Pulse</h2>
+<div class="flex flex-col gap-6">
+<!-- Sleep -->
+<div class="flex items-center gap-4">
+<div class="p-3 bg-white rounded-xl shadow-sm">
+<span class="material-symbols-outlined text-[#436745]" data-icon="bedtime">bedtime</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-end mb-1">
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Sleep Quality</span>
+<span class="text-sm font-bold text-[#436745]">82%</span>
+</div>
+<div class="h-1.5 w-full bg-white rounded-full overflow-hidden">
+<div class="h-full bg-[#436745] w-[82%]"></div>
+</div>
+</div>
+</div>
+<!-- Activity -->
+<div class="flex items-center gap-4">
+<div class="p-3 bg-white rounded-xl shadow-sm">
+<span class="material-symbols-outlined text-[#7DA47D]" data-icon="directions_run">directions_run</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-end mb-1">
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Activity</span>
+<span class="text-sm font-bold text-[#7DA47D]">6,430 steps</span>
+</div>
+<div class="h-1.5 w-full bg-white rounded-full overflow-hidden">
+<div class="h-full bg-[#7DA47D] w-[64%]"></div>
+</div>
+</div>
+</div>
+<!-- Hydration -->
+<div class="flex items-center gap-4">
+<div class="p-3 bg-white rounded-xl shadow-sm">
+<span class="material-symbols-outlined text-[#7DA47D]" data-icon="water_drop">water_drop</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-end mb-1">
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Hydration</span>
+<span class="text-sm font-bold text-[#7DA47D]">1.2L / 2L</span>
+</div>
+<div class="h-1.5 w-full bg-white rounded-full overflow-hidden">
+<div class="h-full bg-[#7DA47D] w-[60%]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-auto bg-white/50 p-4 rounded-xl">
+<p class="text-xs leading-relaxed italic text-on-surface-variant">"The rhythm of the body is the first step toward the harmony of the mind."</p>
+</div>
+</div>
+<!-- Daily Recommendations Grid -->
+<div class="md:col-span-12 mt-4">
+<div class="flex justify-between items-center mb-8">
+<h2 class="text-3xl font-extrabold">Nourish &amp; Restore</h2>
+<button class="text-sm font-bold text-primary flex items-center gap-2 hover:underline">
+                        View All <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Recommendation 1 -->
+<div class="group relative bg-surface-container-lowest rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 border border-stone-100">
+<div class="h-48 overflow-hidden">
+<img alt="Mindfulness session" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiOWCsrCaWq7pqrmbLt1Tr9HqyRlvIfK_1uTLtPIzYUhw8oTyVquV_qaxLemDJ51KbiMgzaPCvr3OXTIzXGZchJKEU76l67L_t6c5MoJvEB9CLbrDAHbvpmbbJ9-xKeHScYjGPWSFGZCgvTGERicRRt6S_MZaqk1p8xZWUsK-1vorSsmfIFpmaUBt7e-VTQdwb-F4z_I-XFRgDGKlsoahR20IvIDmLXEUxlvtF8vqbxMwgSLr16ak_bWaOo5sLXje8oOfxJostkMU"/>
+</div>
+<div class="p-6">
+<span class="text-[10px] font-bold bg-primary-container text-primary px-2 py-1 rounded uppercase tracking-widest">Mental Health</span>
+<h3 class="text-xl font-bold mt-3 mb-2">10-minute mindfulness</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">A gentle grounding practice to center your thoughts before the day begins.</p>
+<button class="mt-6 flex items-center gap-2 text-primary font-bold text-sm">
+                                Start Session <span class="material-symbols-outlined text-sm" data-icon="play_circle">play_circle</span>
+</button>
+</div>
+</div>
+<!-- Recommendation 2 -->
+<div class="group relative bg-surface-container-lowest rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 border border-stone-100">
+<div class="h-48 overflow-hidden">
+<img alt="Healthy meal" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB00DT5lQ_F51LVzp_9PIy7Wxp3j4ZHLx49rLrn2M0J_J93BFG0oTN1qKM4NUyCP8L1m1gAhmvV45t70azeLjFFE_lbBYzREuqn1BJ-UEJWuIhZ8kRG23ALxttv2AmAiP-_gxP6D1ygxCP3LXSKsN1oDg4XHOnwpT8ldtyhyiG8uMAznzchcEDszWrE-D9MbnqE1UBD-Sr66IeHr7BSw1281tixF7eVDjdFDPJn9BkXKl_dWRGXmzP70OFQNkf65SxUVfngmUzN0Ng"/>
+</div>
+<div class="p-6">
+<span class="text-[10px] font-bold bg-secondary-container text-[#436745] px-2 py-1 rounded uppercase tracking-widest">Nutrition</span>
+<h3 class="text-xl font-bold mt-3 mb-2">Nutrient-rich lunch idea</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">The 'Sanctuary Bowl': Quinoa, roasted roots, and seasonal greens for sustained energy.</p>
+<button class="mt-6 flex items-center gap-2 text-primary font-bold text-sm">
+                                View Recipe <span class="material-symbols-outlined text-sm" data-icon="restaurant">restaurant</span>
+</button>
+</div>
+</div>
+<!-- Recommendation 3 -->
+<div class="relative bg-gradient-to-br from-[#436745] to-[#7DA47D] rounded-2xl p-8 text-white overflow-hidden flex flex-col justify-between">
+<div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+<div class="absolute -left-8 -bottom-8 w-40 h-40 bg-primary-container/20 rounded-full blur-3xl"></div>
+<div class="relative z-10">
+<span class="material-symbols-outlined text-4xl mb-6" data-icon="flare">flare</span>
+<h3 class="text-2xl font-bold mb-4">Breathing Meter</h3>
+<p class="text-sm opacity-90 leading-relaxed mb-6">Take a 2-minute conscious breathing break to reset your nervous system.</p>
+</div>
+<div class="relative z-10">
+<div class="w-full h-24 flex items-center justify-center">
+<div class="w-16 h-16 rounded-full border-4 border-white/20 flex items-center justify-center">
+<div class="w-10 h-10 rounded-full bg-white/30 animate-pulse"></div>
+</div>
+</div>
+<button class="w-full bg-white text-[#436745] py-3 rounded-full font-bold text-sm mt-4 hover:bg-opacity-90 transition-all">
+                                Begin Now
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="h-20"></div>
+</main>
+</div>
+<!-- Footer Implementation from COMPONENTS_8 -->
+<footer class="w-full py-12 mt-auto bg-[#f8faf3] dark:bg-stone-900 border-t border-stone-200/20">
+<div class="flex flex-col items-center justify-center gap-4 w-full max-w-8xl mx-auto px-12">
+<nav class="flex flex-wrap justify-center gap-8 font-['Manrope'] text-xs uppercase tracking-widest">
+<a class="text-[#596158] hover:text-[#436745] transition-colors opacity-80 hover:opacity-100" href="#">Privacy</a>
+<a class="text-[#596158] hover:text-[#436745] transition-colors opacity-80 hover:opacity-100" href="#">Terms</a>
+<a class="text-[#596158] hover:text-[#436745] transition-colors opacity-80 hover:opacity-100" href="#">Support</a>
+</nav>
+<div class="text-[#436745] dark:text-[#7DA47D] font-['Manrope'] text-xs uppercase tracking-widest opacity-80">
+            © 2024 Verdant Solace. The Living Sanctuary.
+        </div>
+</div>
+</footer>
+</body></html>

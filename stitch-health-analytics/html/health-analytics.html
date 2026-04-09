@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-low": "#f1f5ec",
+              "tertiary": "#6b5d49",
+              "outline": "#757c7d",
+              "surface-container-highest": "#dde5d9",
+              "on-secondary-fixed-variant": "#3f6449",
+              "on-secondary-fixed": "#22472f",
+              "secondary-fixed": "#c3edcb",
+              "surface-variant": "#dde4e4",
+              "error": "#a83836",
+              "outline-variant": "#acb3b4",
+              "on-error-container": "#6e0a12",
+              "on-secondary-container": "#355a40",
+              "on-tertiary-fixed": "#504230",
+              "primary-fixed": "#7DA47D",
+              "on-tertiary-fixed-variant": "#6d5f4a",
+              "surface-tint": "#436745",
+              "primary-dim": "#3a5a3c",
+              "surface": "#f8faf3",
+              "on-secondary": "#e8ffea",
+              "inverse-surface": "#0b0f0f",
+              "secondary-container": "#dde5d9",
+              "on-background": "#2c3435",
+              "secondary-dim": "#365b41",
+              "on-primary-container": "#1e3120",
+              "primary-container": "#dde5d9",
+              "on-surface": "#2c3435",
+              "surface-container-high": "#e3e9ea",
+              "on-primary-fixed": "#1e3120",
+              "secondary": "#436745",
+              "on-primary-fixed-variant": "#436745",
+              "primary": "#7DA47D",
+              "tertiary-fixed": "#fde8ce",
+              "background": "#f8faf3",
+              "tertiary-container": "#fde8ce",
+              "on-error": "#fff7f6",
+              "on-surface-variant": "#596158",
+              "primary-fixed-dim": "#7DA47D",
+              "secondary-fixed-dim": "#b5debd",
+              "tertiary-fixed-dim": "#eedac0",
+              "surface-container": "#eaefef",
+              "surface-bright": "#f8faf3",
+              "error-dim": "#67040d",
+              "on-tertiary-container": "#635541",
+              "surface-container-lowest": "#ffffff",
+              "on-primary": "#ffffff",
+              "inverse-on-surface": "#9b9d9e",
+              "inverse-primary": "#7DA47D",
+              "surface-dim": "#d4dbdc",
+              "on-tertiary": "#fff8f2",
+              "tertiary-dim": "#5f513e",
+              "error-container": "#fa746f"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#f8faf3]/70 dark:bg-stone-900/70 backdrop-blur-xl">
+<div class="flex justify-between items-center px-12 py-6 w-full max-w-8xl mx-auto font-['Manrope'] tracking-tight leading-relaxed">
+<div class="text-2xl font-bold text-[#436745] dark:text-[#7DA47D]">Verdant Solace</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[#596158] dark:text-stone-400 font-medium hover:text-[#436745] transition-colors duration-300 ease-in-out" href="#">Home</a>
+<a class="text-[#436745] dark:text-[#7DA47D] font-bold border-b-2 border-[#436745] pb-1" href="#">Insights</a>
+<a class="text-[#596158] dark:text-stone-400 font-medium hover:text-[#436745] transition-colors duration-300 ease-in-out" href="#">AI Companion</a>
+<a class="text-[#596158] dark:text-stone-400 font-medium hover:text-[#436745] transition-colors duration-300 ease-in-out" href="#">Recommendations</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-[#436745] scale-95 transition-transform">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed flex flex-col gap-2 h-screen w-64 left-0 top-0 pt-24 bg-[#f1f5ec] dark:bg-stone-800 hidden md:flex font-['Manrope'] text-sm">
+<div class="px-6 mb-8">
+<div class="text-lg font-bold text-[#436745] mb-1">Wellness Tools</div>
+<div class="text-[#596158] text-xs">Your daily sanctuary</div>
+</div>
+<nav class="flex flex-col gap-1 pr-4">
+<a class="flex items-center gap-3 text-[#596158] p-4 hover:bg-[#dde5d9]/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">face</span>
+                Mood
+            </a>
+<a class="flex items-center gap-3 text-[#596158] p-4 hover:bg-[#dde5d9]/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">edit_note</span>
+                Journal
+            </a>
+<a class="flex items-center gap-3 text-[#596158] p-4 hover:bg-[#dde5d9]/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">self_improvement</span>
+                Meditation
+            </a>
+</nav>
+<div class="mt-8 px-6">
+<button class="w-full py-3 bg-[#436745] text-white rounded-lg font-semibold text-sm shadow-lg shadow-[#436745]/20 hover:bg-[#3a5a3c] transition-all active:scale-95">
+                Log Today's Mood
+            </button>
+</div>
+<div class="mt-auto pb-8">
+<a class="flex items-center gap-3 text-[#596158] p-4 hover:bg-[#dde5d9]/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">emergency_share</span>
+                Emergency Help
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-24 min-h-screen px-8 pb-16">
+<div class="max-w-6xl mx-auto">
+<!-- Header & Filter -->
+<header class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+<div class="space-y-2">
+<h1 class="text-4xl md:text-5xl font-headline font-extrabold tracking-tight text-on-surface">Health Analytics</h1>
+<p class="text-on-surface-variant max-w-lg">Deep dive into your wellness journey. Understand the patterns that shape your mental sanctuary.</p>
+</div>
+<div class="flex p-1 bg-surface-container-low rounded-full w-fit">
+<button class="px-6 py-2 rounded-full text-sm font-medium transition-all text-on-surface-variant hover:text-[#436745]">Day</button>
+<button class="px-6 py-2 bg-surface-container-lowest rounded-full text-sm font-semibold shadow-sm text-[#436745] transition-all">Week</button>
+<button class="px-6 py-2 rounded-full text-sm font-medium transition-all text-on-surface-variant hover:text-[#436745]">Month</button>
+</div>
+</header>
+<!-- Bento Grid Dashboard -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<!-- Mood Over Time (Large Chart) -->
+<section class="md:col-span-8 bg-surface-container-low rounded-[2rem] p-8 relative overflow-hidden">
+<div class="flex justify-between items-start mb-12">
+<div>
+<h3 class="text-xl font-headline font-bold text-[#436745]">Mood Resilience</h3>
+<p class="text-on-surface-variant text-sm">Average mood score: 7.4/10</p>
+</div>
+<div class="flex items-center gap-2 text-[#436745]">
+<span class="text-xs font-bold uppercase tracking-widest">Steady Growth</span>
+<span class="material-symbols-outlined text-lg">trending_up</span>
+</div>
+</div>
+<!-- Simplified Visual Representation of a Line Chart -->
+<div class="h-64 flex items-end justify-between gap-4 relative">
+<div class="absolute inset-0 flex flex-col justify-between py-2 border-l border-outline-variant/20">
+<div class="w-full border-t border-dashed border-outline-variant/10"></div>
+<div class="w-full border-t border-dashed border-outline-variant/10"></div>
+<div class="w-full border-t border-dashed border-outline-variant/10"></div>
+<div class="w-full border-t border-dashed border-outline-variant/10"></div>
+</div>
+<svg class="absolute inset-0 w-full h-full pointer-events-none" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M0,80 Q10,75 20,60 T40,65 T60,40 T80,45 T100,20" fill="none" stroke="url(#gradientMood)" stroke-linecap="round" stroke-width="4"></path>
+<defs>
+<lineargradient id="gradientMood" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#436745"></stop>
+<stop offset="100%" stop-color="#7DA47D"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="absolute bottom-[-2rem] w-full flex justify-between text-[10px] font-bold text-outline-variant uppercase tracking-widest">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+</div>
+</section>
+<!-- Daily Activity (Small Bento) -->
+<section class="md:col-span-4 bg-[#dde5d9]/30 rounded-[2rem] p-8 flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-2xl bg-secondary-container flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-[#436745]">directions_run</span>
+</div>
+<h3 class="text-xl font-headline font-bold text-[#436745]">Active Minutes</h3>
+<div class="text-4xl font-headline font-extrabold text-[#436745] mt-2">420 <span class="text-sm font-medium text-[#436745]/60 uppercase">Min</span></div>
+</div>
+<div class="mt-8 space-y-4">
+<div class="flex justify-between items-center text-xs font-bold text-[#436745]">
+<span>Goal: 450 min</span>
+<span>93%</span>
+</div>
+<div class="h-2 w-full bg-white/50 rounded-full overflow-hidden">
+<div class="h-full bg-[#7DA47D] rounded-full w-[93%]"></div>
+</div>
+</div>
+</section>
+<!-- Sleep Cycles (Bento) -->
+<section class="md:col-span-4 bg-surface-container-high rounded-[2rem] p-8">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-tertiary">bedtime</span>
+<h3 class="text-lg font-headline font-bold text-tertiary">Sleep Quality</h3>
+</div>
+<div class="flex gap-2 h-40 items-end justify-between">
+<div class="w-full bg-[#7DA47D]/20 rounded-t-lg h-[60%]"></div>
+<div class="w-full bg-[#7DA47D]/20 rounded-t-lg h-[80%]"></div>
+<div class="w-full bg-[#7DA47D]/40 rounded-t-lg h-[75%]"></div>
+<div class="w-full bg-[#7DA47D]/20 rounded-t-lg h-[90%]"></div>
+<div class="w-full bg-[#436745]/60 rounded-t-lg h-[65%]"></div>
+<div class="w-full bg-[#436745]/20 rounded-t-lg h-[85%]"></div>
+<div class="w-full bg-[#436745]/80 rounded-t-lg h-[95%]"></div>
+</div>
+<div class="mt-4 text-center">
+<p class="text-tertiary font-bold text-2xl">7h 42m</p>
+<p class="text-on-surface-variant text-xs font-medium mt-1">Weekly Average</p>
+</div>
+</section>
+<!-- Insight Highlights (Wide Bento) -->
+<section class="md:col-span-8 bg-surface-container-lowest rounded-[2rem] p-10 shadow-sm shadow-[#436745]/5 flex flex-col md:flex-row gap-10">
+<div class="flex-1 space-y-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-secondary-container rounded-full">
+<span class="material-symbols-outlined text-sm text-[#436745]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="text-[10px] font-bold text-[#436745] uppercase tracking-widest">Mindful Correlation</span>
+</div>
+<h2 class="text-3xl font-headline font-extrabold text-[#436745] leading-tight">We noticed your mood improves on days you sleep more than 7 hours.</h2>
+<p class="text-on-surface-variant leading-relaxed">Your consistency in deep sleep stages during the early week correlates with 15% higher calmness scores in your Thursday journal entries.</p>
+<button class="flex items-center gap-2 text-[#7DA47D] font-bold text-sm group">
+                            Explore full correlation report
+                            <span class="material-symbols-outlined transition-transform group-hover:translate-x-1">arrow_forward</span>
+</button>
+</div>
+<div class="w-full md:w-48 aspect-square rounded-3xl bg-surface-container overflow-hidden">
+<img alt="Serene nature abstraction" class="w-full h-full object-cover opacity-80 mix-blend-multiply" data-alt="Soft focused detail of green ferns in a misty forest with ethereal light filtering through leaves, serene and calming atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5Im8jblgaSnD0d0aSKLUiP11iBzSX-hGc1ANZUno_Rf6HNCZPbhIBa1Rgu3NiGbKnVo3qRAmZ5OTHMXDAcHjP3wOGoCxED9Efyk1_RTd866Os0ts7I8Vb48ycq6hwqyyDaED_Od6Sff2KWi1ffigvUzlTMfEmLUxqY6uhP73LJkyqP3VathPs0I9cN5VJKpSc89XrzxEiVDMCZ5yPev5_D7Yq_ZJeo7fKoQx4Pg3iIPZQOhlj_IBLqExtw333Ub6Tt0jjcpYCbaI"/>
+</div>
+</section>
+</div>
+<!-- Deep Dive Metrics -->
+<section class="mt-16">
+<div class="flex items-center justify-between mb-8">
+<h2 class="text-2xl font-headline font-bold text-on-surface">Biometric Trends</h2>
+<button class="text-sm font-semibold text-[#7DA47D] hover:underline">View All Metrics</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Heart Rate Variability -->
+<div class="bg-surface-container-low p-6 rounded-2xl flex items-center justify-between">
+<div>
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Heart Rate Var.</p>
+<p class="text-2xl font-bold text-[#436745]">62 ms</p>
+</div>
+<div class="text-[#436745] text-right">
+<p class="text-[10px] font-bold">+4%</p>
+<span class="material-symbols-outlined text-3xl">pulse_alert</span>
+</div>
+</div>
+<!-- Respiratory Rate -->
+<div class="bg-surface-container-low p-6 rounded-2xl flex items-center justify-between">
+<div>
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Respiration</p>
+<p class="text-2xl font-bold text-[#436745]">14 bpm</p>
+</div>
+<div class="text-on-surface-variant text-right">
+<p class="text-[10px] font-bold">Stable</p>
+<span class="material-symbols-outlined text-3xl">air</span>
+</div>
+</div>
+<!-- Focus Score -->
+<div class="bg-surface-container-low p-6 rounded-2xl flex items-center justify-between">
+<div>
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Focus Score</p>
+<p class="text-2xl font-bold text-[#436745]">88/100</p>
+</div>
+<div class="text-[#7DA47D] text-right">
+<p class="text-[10px] font-bold">+12%</p>
+<span class="material-symbols-outlined text-3xl">target</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="md:ml-64 bg-[#f8faf3] dark:bg-stone-900 w-full py-12 mt-auto font-['Manrope'] text-xs uppercase tracking-widest">
+<div class="flex flex-col items-center justify-center gap-4 w-full max-w-8xl mx-auto">
+<div class="flex flex-wrap justify-center gap-8">
+<a class="text-[#596158] hover:text-[#436745] transition-colors" href="#">Support</a>
+<a class="text-[#596158] hover:text-[#436745] transition-colors" href="#">Privacy</a>
+<a class="text-[#596158] hover:text-[#436745] transition-colors" href="#">Terms</a>
+</div>
+<p class="text-[#596158] opacity-80 hover:opacity-100 transition-opacity">© 2024 Verdant Solace. The Living Sanctuary.</p>
+</div>
+</footer>
+</body></html>

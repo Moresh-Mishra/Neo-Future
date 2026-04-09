@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-low": "#f1f5ec",
+              "tertiary": "#6b5d49",
+              "outline": "#757c7d",
+              "surface-container-highest": "#dde5d9",
+              "on-secondary-fixed-variant": "#3f6449",
+              "on-secondary-fixed": "#22472f",
+              "secondary-fixed": "#c3edcb",
+              "surface-variant": "#dde5d9",
+              "error": "#a83836",
+              "outline-variant": "#acb3b4",
+              "on-error-container": "#6e0a12",
+              "on-secondary-container": "#355a40",
+              "on-tertiary-fixed": "#504230",
+              "primary-fixed": "#d0e8d1",
+              "on-tertiary-fixed-variant": "#6d5f4a",
+              "surface-tint": "#7DA47D",
+              "primary-dim": "#436745",
+              "surface": "#f8faf3",
+              "on-secondary": "#e8ffea",
+              "inverse-surface": "#0b0f0f",
+              "secondary-container": "#c3edcb",
+              "on-background": "#2c3435",
+              "secondary-dim": "#365b41",
+              "on-primary-container": "#1d2e1e",
+              "primary-container": "#d0e8d1",
+              "on-surface": "#2c3435",
+              "surface-container-high": "#e3e9ea",
+              "on-primary-fixed": "#0a1f0b",
+              "secondary": "#42674d",
+              "on-primary-fixed-variant": "#436745",
+              "primary": "#7DA47D",
+              "tertiary-fixed": "#fde8ce",
+              "background": "#f8faf3",
+              "tertiary-container": "#fde8ce",
+              "on-error": "#fff7f6",
+              "on-surface-variant": "#596158",
+              "primary-fixed-dim": "#7DA47D",
+              "secondary-fixed-dim": "#b5debd",
+              "tertiary-fixed-dim": "#eedac0",
+              "surface-container": "#eaefef",
+              "surface-bright": "#f8faf3",
+              "error-dim": "#67040d",
+              "on-tertiary-container": "#635541",
+              "surface-container-lowest": "#ffffff",
+              "on-primary": "#ffffff",
+              "inverse-on-surface": "#9b9d9e",
+              "inverse-primary": "#d0e8d1",
+              "surface-dim": "#d4dbdc",
+              "on-tertiary": "#fff8f2",
+              "tertiary-dim": "#5f513e",
+              "error-container": "#fa746f"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-effect {
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-background selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#f8faf3]/70 dark:bg-stone-900/70 backdrop-blur-xl">
+<div class="flex justify-between items-center px-12 py-6 w-full max-w-8xl mx-auto">
+<div class="text-2xl font-bold text-[#436745] dark:text-[#7DA47D] font-headline tracking-tight">Verdant Solace</div>
+<div class="hidden md:flex items-center gap-8 font-['Manrope'] tracking-tight leading-relaxed">
+<a class="text-[#596158] dark:text-stone-400 font-medium hover:text-[#436745] transition-colors duration-300 ease-in-out" href="#">Home</a>
+<a class="text-[#596158] dark:text-stone-400 font-medium hover:text-[#436745] transition-colors duration-300 ease-in-out" href="#">Insights</a>
+<a class="text-[#596158] dark:text-stone-400 font-medium hover:text-[#436745] transition-colors duration-300 ease-in-out" href="#">AI Companion</a>
+<a class="text-[#436745] dark:text-[#7DA47D] font-bold border-b-2 border-[#436745] pb-1" href="#">Recommendations</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-[#596158] hover:text-[#436745] scale-95 transition-transform duration-300">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-64 pt-24 z-40 bg-[#f1f5ec] dark:bg-stone-800 hidden lg:block">
+<div class="flex flex-col gap-2 font-['Manrope'] text-sm h-full">
+<div class="mb-8 px-6">
+<div class="text-lg font-bold text-[#436745] mb-1">Wellness Tools</div>
+<p class="text-[#596158] text-xs">Your daily sanctuary</p>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 text-[#596158] p-4 hover:bg-[#dde5d9]/50 transition-all duration-300 translate-x-1" href="#">
+<span class="material-symbols-outlined text-[#436745]" data-icon="face">face</span>
+                Mood
+            </a>
+<a class="flex items-center gap-3 text-[#596158] p-4 hover:bg-[#dde5d9]/50 transition-all duration-300 translate-x-1" href="#">
+<span class="material-symbols-outlined text-[#436745]" data-icon="edit_note">edit_note</span>
+                Journal
+            </a>
+<a class="flex items-center gap-3 bg-[#dde5d9] dark:bg-stone-700 text-[#436745] rounded-r-full p-4 transition-transform translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="self_improvement">self_improvement</span>
+                Meditation
+            </a>
+</nav>
+<div class="mt-auto p-6">
+<a class="flex items-center gap-3 text-error font-medium p-4 hover:bg-error/5 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="emergency_share">emergency_share</span>
+                Emergency Help
+            </a>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="lg:pl-64 pt-32 pb-20 px-6 md:px-12 max-w-7xl mx-auto">
+<!-- Hero Section -->
+<header class="mb-16">
+<h1 class="text-display-lg font-headline font-extrabold text-on-surface tracking-tighter text-4xl md:text-5xl mb-4">Curated for your spirit.</h1>
+<p class="text-on-surface-variant max-w-2xl text-lg leading-relaxed">Based on your recent focus on evening rest and mindful movement, we’ve tailored these paths for your sanctuary today.</p>
+</header>
+<!-- Bento Grid: Recommendations -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<!-- Nutritional Insights Section -->
+<section class="md:col-span-8 flex flex-col gap-6">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-secondary" data-icon="restaurant">restaurant</span>
+<h2 class="font-headline text-2xl font-bold">Nutritional Insights</h2>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+<!-- Recipe Card 1 -->
+<div class="bg-surface-container-lowest rounded-lg p-6 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 group relative overflow-hidden border border-surface-container-high">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-primary/20 transition-colors"></div>
+<div class="flex flex-col h-full">
+<span class="text-xs font-bold text-primary tracking-widest uppercase mb-3">Brain Health</span>
+<h3 class="font-headline text-xl font-bold mb-2">Walnut &amp; Wild Berry Bowl</h3>
+<p class="text-on-surface-variant text-sm mb-6 line-clamp-3">Rich in Omega-3s and antioxidants to support cognitive function and reduce morning inflammation.</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="text-xs text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="schedule">schedule</span> 12 min
+                            </span>
+<button class="flex items-center gap-2 text-primary font-semibold text-sm hover:underline">
+                                Add to Daily Tasks <span class="material-symbols-outlined text-[18px]" data-icon="add_circle">add_circle</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Recipe Card 2 -->
+<div class="bg-surface-container-lowest rounded-lg p-6 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 group relative overflow-hidden border border-surface-container-high">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-secondary/20 transition-colors"></div>
+<div class="flex flex-col h-full">
+<span class="text-xs font-bold text-secondary tracking-widest uppercase mb-3">Hydration</span>
+<h3 class="font-headline text-xl font-bold mb-2">Cucumber &amp; Mint Infusion</h3>
+<p class="text-on-surface-variant text-sm mb-6 line-clamp-3">A gentle way to restore electrolytes and calm the digestive system before your afternoon tasks.</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="text-xs text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="schedule">schedule</span> 5 min
+                            </span>
+<button class="flex items-center gap-2 text-primary font-semibold text-sm hover:underline">
+                                Add to Daily Tasks <span class="material-symbols-outlined text-[18px]" data-icon="add_circle">add_circle</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Dietary Tip - Full Width -->
+<div class="bg-surface-container-low rounded-lg p-8 flex flex-col md:flex-row items-center gap-8 border-none">
+<div class="w-full md:w-1/3">
+<img alt="Fresh green salad with vibrant vegetables" class="rounded-lg shadow-sm" data-alt="vibrant bowl of fresh salad with leafy greens, colorful vegetables, and seeds on a minimalist light background with soft morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkjHdlHYAIsrsU_VHULXwGmBu8yc-o8n8bKQLIsjqjfPArbNMVCj01eGeCtuPrDtMFdvZHefIwEgrEiD6xOhmKp9U8QoxvrEZt9mi3akeVzaxNMZmQWVTn3VJafvBkGsCnXWspsVAyEQ7JoqKLqWBRSJOdTKsMvx5BVLmVZ_g0ZVtt9Hj4rI3OMXC0bj4BPBDemt1HCKVqOCnDIIUvqq2h04oz5Tstem45rdtUPKkIzkUCiEvIeU05sPrLA9oi6-1AlKT4RyQLXp8"/>
+</div>
+<div class="w-full md:w-2/3">
+<div class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full inline-block text-[10px] font-bold tracking-widest uppercase mb-4">Pro Tip</div>
+<h3 class="font-headline text-2xl font-bold mb-3">Mindful Chewing Ritual</h3>
+<p class="text-on-surface-variant text-md leading-relaxed mb-6">Experience your food with all five senses. Chewing each bite 20 times improves nutrient absorption and promotes a sense of grounding.</p>
+<button class="bg-primary-dim text-on-primary px-6 py-2 rounded-lg font-semibold text-sm transition-transform active:scale-95 shadow-lg shadow-primary/20">Add to Daily Tasks</button>
+</div>
+</div>
+</section>
+<!-- Activity & Movement Sidebar -->
+<section class="md:col-span-4 flex flex-col gap-6">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary" data-icon="directions_run">directions_run</span>
+<h2 class="font-headline text-2xl font-bold">Activity</h2>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Activity Card 1 -->
+<div class="bg-surface-container-lowest rounded-lg p-5 border border-surface-container-high transition-all hover:bg-primary-container/20 group">
+<div class="flex items-start gap-4">
+<div class="bg-primary-container p-3 rounded-lg group-hover:bg-white transition-colors">
+<span class="material-symbols-outlined text-primary" data-icon="yoga">self_improvement</span>
+</div>
+<div class="flex-1">
+<h4 class="font-headline font-bold text-on-surface">Spinal Release Flow</h4>
+<p class="text-xs text-on-surface-variant mt-1">15 min • Low Intensity</p>
+<button class="mt-4 text-primary text-xs font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                                ADD TO TASKS <span class="material-symbols-outlined text-[14px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Activity Card 2 -->
+<div class="bg-surface-container-lowest rounded-lg p-5 border border-surface-container-high transition-all hover:bg-secondary-container/20 group">
+<div class="flex items-start gap-4">
+<div class="bg-secondary-container p-3 rounded-lg group-hover:bg-white transition-colors">
+<span class="material-symbols-outlined text-secondary" data-icon="nature_people">nature_people</span>
+</div>
+<div class="flex-1">
+<h4 class="font-headline font-bold text-on-surface">Mindful Forest Walk</h4>
+<p class="text-xs text-on-surface-variant mt-1">30 min • Medium Intensity</p>
+<button class="mt-4 text-primary text-xs font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                                ADD TO TASKS <span class="material-symbols-outlined text-[14px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Activity Card 3 -->
+<div class="bg-surface-container-lowest rounded-lg p-5 border border-surface-container-high transition-all hover:bg-tertiary-container/20 group">
+<div class="flex items-start gap-4">
+<div class="bg-tertiary-container p-3 rounded-lg group-hover:bg-white transition-colors">
+<span class="material-symbols-outlined text-tertiary" data-icon="bedtime">bedtime</span>
+</div>
+<div class="flex-1">
+<h4 class="font-headline font-bold text-on-surface">Evening Unwind Stretching</h4>
+<p class="text-xs text-on-surface-variant mt-1">10 min • Gentle Intensity</p>
+<button class="mt-4 text-primary text-xs font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                                ADD TO TASKS <span class="material-symbols-outlined text-[14px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Lifestyle Adjustments - Wide Section -->
+<section class="md:col-span-12 mt-8">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-on-surface" data-icon="auto_awesome">auto_awesome</span>
+<h2 class="font-headline text-2xl font-bold">Lifestyle Adjustments</h2>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Lifestyle Card 1 -->
+<div class="flex flex-col gap-4">
+<img alt="Serene bedroom with soft lighting" class="w-full h-48 object-cover rounded-lg grayscale hover:grayscale-0 transition-all duration-500 shadow-sm" data-alt="zen bedroom with minimalist white bedding, soft warm lamp light, and a small plant on a bedside table in muted tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUZAefoNgRJZBeifQYE3_t3fZraHA7NGWUSGgO_jLshFUNVkUY1y5s6ZM3Og8msxjNfZsGEPeNOvIketjziW1CUQw0CQXuW5BGq3m5A1PPwxkdRZuuubCf7MiO9sWKmIhY0_rQ2nimkHzsjjr6EIvAtlwC_ikRpIpx3Ip4EVWdg9Hcd8uaVzDSbfGeHLNRavmSm9wrIvtB6F7uFTMn8hyd0dmbqkPPePwN-FC3c_-v_a48sPD5UojlYTfxsXdkhPaiAGg0X_GJ7iE"/>
+<div class="px-2">
+<h3 class="font-headline font-bold text-xl mb-2">The Blue Light Embargo</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-4">Minimize screen exposure 90 minutes before sleep to stimulate natural melatonin production.</p>
+<button class="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
+                            Commit to task <span class="material-symbols-outlined text-[16px]" data-icon="check_circle">check_circle</span>
+</button>
+</div>
+</div>
+<!-- Lifestyle Card 2 -->
+<div class="flex flex-col gap-4">
+<img alt="Plant on a desk with morning sunlight" class="w-full h-48 object-cover rounded-lg grayscale hover:grayscale-0 transition-all duration-500 shadow-sm" data-alt="close up of a vibrant green snake plant in a ceramic pot on a clean white desk with soft morning sunlight streaming in" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXebOzidumvh-H0csl_w4Sr3Ti4DcGRDh389LtBc18FDdRygi2lujviumjeCVw__RTCW5Ie5-CmzyBFInsPbLg6NEuCbJmygIzemtaqadrODdJ47MbFZItbB5WplUctlEW8-Pa9EMFFcT4HHoHTlmEm2vKymqPMJzqQ8cj2W2REWfP_XvLzKd3DItJsTgnd9uJsvvGkffENaYM_DSLOYcoV3lnR9L3YVHdRaE3JvZqnXUFtF8_4f0R8E37_OocmVytYUg_3CT2g5Y"/>
+<div class="px-2">
+<h3 class="font-headline font-bold text-xl mb-2">Ambient Oxygen Enrichment</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-4">Adding a Sansevieria plant to your workspace can naturally filter toxins and boost oxygen levels.</p>
+<button class="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
+                            Commit to task <span class="material-symbols-outlined text-[16px]" data-icon="check_circle">check_circle</span>
+</button>
+</div>
+</div>
+<!-- Lifestyle Card 3 -->
+<div class="flex flex-col gap-4">
+<img alt="Person looking out of a window at sunrise" class="w-full h-48 object-cover rounded-lg grayscale hover:grayscale-0 transition-all duration-500 shadow-sm" data-alt="atmospheric silhouette of a person standing by a large window looking out at a soft misty dawn landscape with gentle light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAB9Ekjc4PIaa1XA2XaDEbzNdD4Fg1CwZNp1Watrky3jqir-ftuqW4I-M28s70sc3TRLIXKVDQA8LXb_-QEEzHmeGbeAXm6WjYOgWYoXgYdOcsQkQLuATjpAOXVXX2mn7mJUe40M4vTxWZhWgQsn8qNaLdvlfO7pomaM1duzqKMJ-fFCAFFcwTHP_A21Gs6xmRbum6JTtb3s4v31tDXKmJzjIvzBlzZs8cq7Z2DSLzRuMdnmvf770AqAPVK16ZKOmMmRWiPq3qLlaE"/>
+<div class="px-2">
+<h3 class="font-headline font-bold text-xl mb-2">Sunrise Reset Ritual</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-4">Spend 5 minutes in natural daylight upon waking to reset your circadian rhythm for better focus.</p>
+<button class="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
+                            Commit to task <span class="material-symbols-outlined text-[16px]" data-icon="check_circle">check_circle</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 mt-auto bg-[#f8faf3] dark:bg-stone-900 border-t border-surface-container-high">
+<div class="flex flex-col items-center justify-center gap-4 w-full max-w-8xl mx-auto px-12">
+<div class="font-['Manrope'] text-xs uppercase tracking-widest text-[#596158] dark:text-[#7DA47D]">
+            © 2024 Verdant Solace. The Living Sanctuary.
+        </div>
+<div class="flex flex-wrap justify-center gap-8 font-['Manrope'] text-xs uppercase tracking-widest">
+<a class="text-[#596158] hover:text-[#436745] transition-opacity opacity-80 hover:opacity-100" href="#">Privacy</a>
+<a class="text-[#596158] hover:text-[#436745] transition-opacity opacity-80 hover:opacity-100" href="#">Terms</a>
+<a class="text-[#596158] hover:text-[#436745] transition-opacity opacity-80 hover:opacity-100" href="#">Support</a>
+</div>
+</div>
+</footer>
+<!-- FAB -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-transform z-50 lg:hidden">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</body></html>
