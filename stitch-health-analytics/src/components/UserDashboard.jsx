@@ -1,8 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import TopNavBar from './TopNavBar';
 import Footer from './Footer';
 
 const UserDashboard = () => {
+  const [user, setUser] = useState(null);
+
+  // Load user from localStorage
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const userData = JSON.parse(userStr);
+        setUser(userData);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }, []);
   const moodData = [
     { day: 'Mon', value: 24, fill: 'bg-[#7DA47D]/40' },
     { day: 'Tue', value: 32, fill: 'bg-[#7DA47D]/40' },
@@ -54,7 +68,7 @@ const UserDashboard = () => {
           {/* Welcome Section */}
           <section className="mb-10 md:mb-14">
             <h1 className="mb-3 text-3xl font-extrabold tracking-tight text-on-surface md:text-5xl">
-              Take a moment for yourself today, Sarah.
+              Take a moment for yourself today, {user?.name || 'Guest'}.
             </h1>
             <p className="max-w-2xl text-sm leading-relaxed text-on-surface-variant md:text-lg">
               Welcome back to your sanctuary. Your personal wellness path is ready for exploration.

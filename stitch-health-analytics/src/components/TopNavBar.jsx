@@ -24,6 +24,51 @@ const TopNavBar = ({ activeTab = 'sanctuary', links = defaultNavLinks }) => {
   const isFirstIndicatorPaint = useRef(true);
   const [desktopIndicator, setDesktopIndicator] = useState({ left: 0, width: 0, visible: false });
   const [animateIndicator, setAnimateIndicator] = useState(false);
+  const [user, setUser] = useState(null);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileMenuRef = useRef(null);
+
+  // Load user from localStorage
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const userData = JSON.parse(userStr);
+        setUser(userData);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }, []);
+
+  // Close profile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    if (showProfileMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showProfileMenu]);
+
+  const handleLogout = () => {
+    // Clear user data from localStorage
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('rememberMe');
+    
+    // Close menu
+    setShowProfileMenu(false);
+    
+    // Redirect to login
+    window.location.hash = '#login';
+  };
 
   const updateDesktopIndicator = () => {
     const navElement = desktopNavRef.current;
@@ -114,13 +159,58 @@ const TopNavBar = ({ activeTab = 'sanctuary', links = defaultNavLinks }) => {
             <button className="hidden h-10 w-10 items-center justify-center rounded-full border border-[#dde5d9] bg-white text-[#596158] shadow-sm transition-colors hover:text-[#436745] sm:flex">
               <span className="material-symbols-outlined text-[20px]">notifications</span>
             </button>
-            <button className="h-10 w-10 overflow-hidden rounded-full border border-[#dde5d9] bg-white shadow-sm">
-              <img
-                alt="User avatar"
-                className="h-full w-full object-cover"
-                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80"
-              />
-            </button>
+            
+            {/* Profile Button with Dropdown */}
+            <div ref={profileMenuRef} className="relative">
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="h-10 w-10 flex items-center justify-center rounded-full border border-[#dde5d9] bg-white text-[#436745] shadow-sm transition-all hover:bg-[#f0f5ec]"
+              >
+                <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>account_circle</span>
+              </button>
+
+              {/* Dropdown Menu */}
+              {showProfileMenu && user && (
+                <div className="absolute right-0 mt-2 w-72 rounded-lg bg-white border border-[#dde5d9] shadow-lg overflow-hidden z-50">
+                  {/* User Info Section */}
+                  <div className="p-4 bg-[#f8faf3] border-b border-[#dde5d9]">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-12 w-12 rounded-full bg-[#dde5d9] flex items-center justify-center text-[#436745]">
+                        <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>account_circle</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-[#436745]">{user.name || 'User'}</p>
+                      </div>
+                    </div>
+                    
+                    {/* User Details */}
+                    <div className="space-y-2 text-sm">
+                      {user.email && (
+                        <div className="flex items-start gap-2">
+                          <span className="material-symbols-outlined text-[16px] text-[#596158] mt-0.5" style={{ fontVariationSettings: "'FILL' 0" }}>mail</span>
+                          <span className="text-[#596158] break-all">{user.email}</span>
+                        </div>
+                      )}
+                      {user.phone && (
+                        <div className="flex items-start gap-2">
+                          <span className="material-symbols-outlined text-[16px] text-[#596158] mt-0.5" style={{ fontVariationSettings: "'FILL' 0" }}>phone</span>
+                          <span className="text-[#596158]">{user.phone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Logout Button */}
+                  <button
+                    onClick={handleLogout}
+                    className="w-full px-4 py-3 text-sm font-medium text-[#e74c3c] hover:bg-[#fee] transition-colors flex items-center gap-2 justify-center"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">logout</span>
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </nav>
