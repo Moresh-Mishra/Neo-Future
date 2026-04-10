@@ -13,6 +13,7 @@ const VOICE_URL = `${PUBLIC_URL}/voices`;
 const EMOTION_TEXT_ENDPOINT = `${EMOTION_API_BASE_URL}/api/ai/text-emotion`;
 const EMOTION_FACE_ENDPOINT = `${EMOTION_API_BASE_URL}/api/ai/facial-emotion`;
 const EMOTION_VOICE_ENDPOINT = `${EMOTION_API_BASE_URL}/api/ai/voice-emotion`;
+const EMOTION_COMBINED_ENDPOINT = `${EMOTION_API_BASE_URL}/api/ai/combined-emotion`;
 
 const AVATARS = {
   julia: {
@@ -355,10 +356,18 @@ const AICompanion = () => {
       const token = localStorage.getItem('token');
 
       // Call Stitch emotion detection API
-      const apiUrl = EMOTION_TEXT_ENDPOINT;
+      let apiUrl = EMOTION_TEXT_ENDPOINT;
       const requestBody = {
         text: userMessage,
       };
+
+      if (isCameraOn) {
+        const imageData = getCameraImageData();
+        if (imageData) {
+          apiUrl = EMOTION_COMBINED_ENDPOINT;
+          requestBody.image = imageData;
+        }
+      }
 
       console.log('Sending message to emotion backend:', requestBody);
 
@@ -437,6 +446,23 @@ const AICompanion = () => {
     cameraVideoRef.current.onloadedmetadata = () => resolve();
   });
 
+  const getCameraImageData = () => {
+    if (!cameraVideoRef.current) {
+      return null;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = cameraVideoRef.current.videoWidth || 640;
+    canvas.height = cameraVideoRef.current.videoHeight || 480;
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return null;
+    }
+
+    context.drawImage(cameraVideoRef.current, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', 0.85);
+  };
+
   const addBotMessage = (text, mood) => {
     if (!text) {
       return;
@@ -457,16 +483,10 @@ const AICompanion = () => {
       return;
     }
 
-    const canvas = document.createElement('canvas');
-    canvas.width = cameraVideoRef.current.videoWidth || 640;
-    canvas.height = cameraVideoRef.current.videoHeight || 480;
-    const context = canvas.getContext('2d');
-    if (!context) {
+    const imageData = getCameraImageData();
+    if (!imageData) {
       return;
     }
-
-    context.drawImage(cameraVideoRef.current, 0, 0, canvas.width, canvas.height);
-    const imageData = canvas.toDataURL('image/jpeg', 0.85);
 
     try {
       setIsLoading(true);
@@ -513,13 +533,41 @@ const AICompanion = () => {
       }
 
       const data = await response.json();
-      if (data.text) {
+      const transcript = data.text || '';
+
+      if (transcript) {
         setMessages(prev => [...prev, {
           type: 'user',
-          text: data.text,
+          text: transcript,
           time: formatTime(),
           role: 'user',
         }]);
+      }
+
+      if (isCameraOn && transcript) {
+        const imageData = getCameraImageData();
+        if (imageData) {
+          const combinedResponse = await fetch(EMOTION_COMBINED_ENDPOINT, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: transcript, image: imageData }),
+          });
+
+          if (!combinedResponse.ok) {
+            throw new Error(`Combined API error: ${combinedResponse.status}`);
+          }
+
+          const combinedData = await combinedResponse.json();
+          if (combinedData.avatarMood) {
+            setAvatarMood(combinedData.avatarMood);
+          }
+          if (combinedData.response) {
+            addBotMessage(combinedData.response, combinedData.avatarMood);
+          }
+          return;
+        }
       }
 
       if (data.avatarMood) {

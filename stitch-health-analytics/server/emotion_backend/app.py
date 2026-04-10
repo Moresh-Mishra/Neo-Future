@@ -93,6 +93,69 @@ def get_ollama_response(user_text, emotions):
     return "Ollama is unavailable right now.", mood
 
 
+def get_combined_ollama_response(user_text, face_emotions, text_emotions):
+    face_top = face_emotions[0]['emotion'] if face_emotions else 'neutral'
+    text_top = text_emotions[0]['emotion'] if text_emotions else 'neutral'
+
+    face_str = ", ".join(
+        [f"{e['emotion']} ({e['percentage']}%)" for e in face_emotions]
+    ) or "neutral"
+    text_str = ", ".join(
+        [f"{e['emotion']} ({e['percentage']}%)" for e in text_emotions]
+    ) or "neutral"
+
+    mood_source = face_top if face_emotions else text_top
+    mood = map_mood(mood_source)
+
+    system_message = (
+        "You are EmWell, a warm, empathetic companion. "
+        "If face emotion and text emotion differ, explicitly acknowledge the mismatch. "
+        "Respond in 2-4 sentences, supportive and natural."
+    )
+    user_message = (
+        f"User message: \"{user_text}\"\n"
+        f"Face emotions: {face_str}\n"
+        f"Text emotions: {text_str}\n"
+        "If they differ, say so gently and ask a clarifying question."
+    )
+
+    try:
+        response = ollama_session.post(
+            OLLAMA_API_URL,
+            json={
+                "model": OLLAMA_MODEL,
+                "messages": [
+                    {"role": "system", "content": system_message},
+                    {"role": "user", "content": user_message},
+                ],
+                "stream": False,
+                "options": {
+                    "temperature": 0.7,
+                    "top_p": 0.9,
+                },
+            },
+            timeout=120,
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+            message_content = data.get('message', {}).get('content', '').strip()
+            if message_content:
+                return message_content, mood
+
+        print(f"Ollama failed: status={response.status_code}, body={response.text[:500]}")
+    except Exception as exc:
+        print(f"Ollama request error: {exc}")
+
+    if face_top != text_top:
+        return (
+            f"Your face reads as {map_mood(face_top)}, but your words sound {map_mood(text_top)}. "
+            "What feels most true right now?",
+            mood,
+        )
+    return "I hear you. Want to share a bit more about what you're feeling?", mood
+
+
 def transcribe_audio(audio_bytes):
     model = load_whisper_model()
 
@@ -236,9 +299,12 @@ def analyze_combined_emotion():
     image_data = payload.get('image', '')
 
     emotion_sets = []
+    text_emotions = []
+    face_emotions = []
 
     if text:
-        emotion_sets.append(analyze_text(text))
+        text_emotions = analyze_text(text)
+        emotion_sets.append(text_emotions)
 
     if image_data:
         if ',' in image_data:
@@ -255,8 +321,11 @@ def analyze_combined_emotion():
         return jsonify({'success': False, 'error': 'No valid input provided'}), 400
 
     combined = aggregate_emotions(emotion_sets)
-    mood = map_mood(combined[0]['emotion'] if combined else 'neutral')
-    response_message, mood = get_ollama_response(text or 'How am I feeling?', combined)
+    response_message, mood = get_combined_ollama_response(
+        text or 'How am I feeling?',
+        face_emotions,
+        text_emotions,
+    )
 
     return jsonify({
         'success': True,
