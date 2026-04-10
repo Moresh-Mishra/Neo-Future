@@ -19,3 +19,4 @@ export { default as ExerciseRecommender } from './ExerciseRecommender';
 export { default as EmWellLandingPage } from './EmWellLandingPage';
 export { default as LoginPage } from './LoginPage';
 export { default as SignUpPage } from './SignUpPage';
+export { default as DailyReflection } from './DailyReflection';

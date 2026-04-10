@@ -9,6 +9,7 @@ import {
   EmWellLandingPage,
   LoginPage,
   SignUpPage,
+  DailyReflection,
 } from './components';
 
 // Simple router for demo purposes
@@ -29,6 +30,7 @@ const App = () => {
     '#emwell': 'emwell-landing',
     '#login': 'login',
     '#signup': 'signup',
+    '#daily-reflection': 'daily-reflection',
   };
 
   const screenToHash = {
@@ -41,6 +43,7 @@ const App = () => {
     'emwell-landing': '#emwell',
     login: '#login',
     signup: '#signup',
+    'daily-reflection': '#daily-reflection',
   };
 
   const resolveScreenFromHash = () => hashToScreen[window.location.hash] || 'emwell-landing';
@@ -94,6 +97,8 @@ const App = () => {
         return <LoginPage onNavigate={navigateTo} />;
       case 'signup':
         return <SignUpPage onNavigate={navigateTo} />;
+      case 'daily-reflection':
+        return <DailyReflection onNavigate={navigateTo} />;
       default:
         return <UserDashboard />;
     }

@@ -1,13 +1,17 @@
 {
   "files": {
-    "main.css": "/static/css/main.ef38cac0.css",
-    "main.js": "/static/js/main.e7b8f102.js",
+    "main.css": "/static/css/main.5e536fe4.css",
+    "main.js": "/static/js/main.73a9e1b3.js",
+    "static/media/background-forest.jpg": "/static/media/background-forest.9d639496864747fb4cdd.jpg",
+    "static/media/testimonial-marcus.jpg": "/static/media/testimonial-marcus.b07b2497273ce3b94ee4.jpg",
+    "static/media/hero-wellness.jpg": "/static/media/hero-wellness.fd9312246be44d1307d9.jpg",
+    "static/media/process-journal.jpg": "/static/media/process-journal.6aa855ea95a45b5975f3.jpg",
     "index.html": "/index.html",
-    "main.ef38cac0.css.map": "/static/css/main.ef38cac0.css.map",
-    "main.e7b8f102.js.map": "/static/js/main.e7b8f102.js.map"
+    "main.5e536fe4.css.map": "/static/css/main.5e536fe4.css.map",
+    "main.73a9e1b3.js.map": "/static/js/main.73a9e1b3.js.map"
   },
   "entrypoints": [
-    "static/css/main.ef38cac0.css",
-    "static/js/main.e7b8f102.js"
+    "static/css/main.5e536fe4.css",
+    "static/js/main.73a9e1b3.js"
   ]
 }
