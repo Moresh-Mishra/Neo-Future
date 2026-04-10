@@ -96,6 +96,7 @@ const AICompanion = () => {
   const cameraVideoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const micStreamRef = useRef(null);
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -131,6 +132,10 @@ const AICompanion = () => {
     return () => {
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();
+      }
+      if (micStreamRef.current) {
+        micStreamRef.current.getTracks().forEach(track => track.stop());
+        micStreamRef.current = null;
       }
       if (cameraStreamRef.current) {
         cameraStreamRef.current.getTracks().forEach(track => track.stop());
@@ -541,6 +546,7 @@ const AICompanion = () => {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStreamRef.current = stream;
       const recorder = new MediaRecorder(stream);
       audioChunksRef.current = [];
 
@@ -552,7 +558,11 @@ const AICompanion = () => {
 
       recorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
-        stream.getTracks().forEach(track => track.stop());
+        audioChunksRef.current = [];
+        if (micStreamRef.current) {
+          micStreamRef.current.getTracks().forEach(track => track.stop());
+          micStreamRef.current = null;
+        }
         sendVoiceEmotion(audioBlob);
       };
 
@@ -776,7 +786,7 @@ const AICompanion = () => {
             <div className="border-t border-outline-variant/10 bg-surface-container-low/40 p-4 md:p-6">
               <div className="relative flex items-center">
                 <input
-                  className="w-full rounded-xl border-none border-b-2 border-outline-variant/30 bg-surface-container-low py-3 pl-4 pr-16 text-sm placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-0 md:py-4 disabled:opacity-50"
+                  className="w-full rounded-xl border-none border-b-2 border-outline-variant/30 bg-surface-container-low py-3 pl-4 pr-36 text-sm placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-0 md:py-4 disabled:opacity-50"
                   placeholder="Share your thoughts..."
                   type="text"
                   value={message}
@@ -836,12 +846,6 @@ const AICompanion = () => {
                     title="Emoji (coming soon)"
                   >
                     sentiment_satisfied
-                  </span>
-                  <span 
-                    className="material-symbols-outlined text-on-surface-variant text-lg cursor-pointer hover:text-primary transition-colors duration-200"
-                    title="Attach file (coming soon)"
-                  >
-                    attach_file
                   </span>
                 </div>
                 <span className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">

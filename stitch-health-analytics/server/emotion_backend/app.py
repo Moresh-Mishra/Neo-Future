@@ -1,5 +1,6 @@
 import base64
 import os
+import tempfile
 import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -17,13 +18,32 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app, origins=os.getenv('CORS_ORIGINS', '*').split(','))
 
-HF_TOKEN = os.getenv('HUGGINGFACE_API_TOKEN', '')
-HF_MODEL = os.getenv('HF_WHISPER_MODEL', 'distil-whisper/large-v3')
+WHISPER_MODEL = os.getenv('WHISPER_MODEL', 'small')
+WHISPER_DEVICE = os.getenv('WHISPER_DEVICE', 'cpu')
+WHISPER_COMPUTE_TYPE = os.getenv('WHISPER_COMPUTE_TYPE', 'int8')
 OLLAMA_API_URL = os.getenv('OLLAMA_API_URL', 'http://127.0.0.1:11434/api/chat')
 OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'llama3:latest')
 
 ollama_session = requests.Session()
 ollama_session.headers.update({'Content-Type': 'application/json'})
+
+_whisper_model = None
+
+
+def load_whisper_model():
+    global _whisper_model
+
+    if _whisper_model is not None:
+        return _whisper_model
+
+    from faster_whisper import WhisperModel
+
+    _whisper_model = WhisperModel(
+        WHISPER_MODEL,
+        device=WHISPER_DEVICE,
+        compute_type=WHISPER_COMPUTE_TYPE,
+    )
+    return _whisper_model
 
 
 def get_ollama_response(user_text, emotions):
@@ -74,21 +94,19 @@ def get_ollama_response(user_text, emotions):
 
 
 def transcribe_audio(audio_bytes):
-    if not HF_TOKEN:
-        raise RuntimeError('HUGGINGFACE_API_TOKEN is not configured')
+    model = load_whisper_model()
 
-    url = f"https://api-inference.huggingface.co/models/{HF_MODEL}"
-    headers = {
-        'Authorization': f"Bearer {HF_TOKEN}",
-    }
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as tmp_file:
+        tmp_file.write(audio_bytes)
+        tmp_path = tmp_file.name
 
-    response = requests.post(url, headers=headers, data=audio_bytes, timeout=60)
-    if response.status_code >= 400:
-        raise RuntimeError(f"Whisper API error: {response.status_code}")
-
-    data = response.json()
-    text = data.get('text') or data.get('transcription') or ''
-    return text.strip()
+    try:
+        segments, _info = model.transcribe(tmp_path)
+        text = " ".join(segment.text.strip() for segment in segments).strip()
+        return text
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
 
 
 @app.route('/api/health', methods=['GET'])
@@ -168,6 +186,7 @@ def analyze_voice_emotion():
     try:
         transcript = transcribe_audio(audio_bytes)
     except Exception as exc:
+        print(f"Voice emotion error: {exc}")
         return jsonify({'success': False, 'error': str(exc)}), 500
 
     if not transcript:
@@ -184,6 +203,29 @@ def analyze_voice_emotion():
         'emotions': emotions,
         'avatarMood': mood,
         'response': response_message,
+    })
+
+
+@app.route('/api/ai/voice-transcribe', methods=['POST'])
+def transcribe_voice_chunk():
+    if 'audio' not in request.files:
+        return jsonify({'success': False, 'error': 'Audio file is required'}), 400
+
+    audio_file = request.files['audio']
+    audio_bytes = audio_file.read()
+
+    try:
+        transcript = transcribe_audio(audio_bytes)
+    except Exception as exc:
+        print(f"Voice transcribe error: {exc}")
+        return jsonify({'success': False, 'error': str(exc)}), 500
+
+    if not transcript:
+        return jsonify({'success': False, 'error': 'Transcription empty'}), 400
+
+    return jsonify({
+        'success': True,
+        'text': transcript,
     })
 
 
