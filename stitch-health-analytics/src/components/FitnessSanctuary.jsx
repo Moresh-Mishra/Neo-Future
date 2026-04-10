@@ -405,7 +405,7 @@ const FitnessSanctuary = () => {
           </section>
 
           {/* Step 2: Create Your Own Workout Plan */}
-          <section className="space-y-8">
+          <section className="space-y-8 min-h-screen md:min-h-[800px]">
             <div>
               <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant">
                 Section 02

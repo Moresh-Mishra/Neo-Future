@@ -256,6 +256,19 @@ app.post('/api/update-q-table', async (req, res) => {
       return res.status(400).json({ success: false, error: 'userId, state, action, and reward are required' });
     }
 
+    // Verify user exists to avoid foreign key constraint errors
+    const [userExists] = await mysqlPool.query(
+      'SELECT user_id FROM users WHERE user_id = ?',
+      [userId]
+    );
+
+    if (userExists.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'User does not exist in database. Please ensure user is created before updating Q-table.' 
+      });
+    }
+
     // Get current Q-value
     const [currentResults] = await mysqlPool.query(
       'SELECT q_value FROM user_q_table WHERE user_id = ? AND state = ? AND action = ?',
