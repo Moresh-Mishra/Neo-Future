@@ -20,13 +20,19 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
   // Initialize user
   useEffect(() => {
     const initUser = () => {
-      const storedUserId = localStorage.getItem('exerciseUserId');
-      if (storedUserId) {
-        setUserId(parseInt(storedUserId, 10));
-      } else {
-        const newUserId = Math.floor(Math.random() * 1000000) + 1;
-        localStorage.setItem('exerciseUserId', newUserId.toString());
-        setUserId(newUserId);
+      try {
+        // Get authenticated user from localStorage
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user && user.user_id) {
+          setUserId(user.user_id);
+          console.log('✓ Using authenticated user ID:', user.user_id);
+        } else {
+          console.warn('⚠️ No authenticated user found. User must be logged in.');
+          setError('Please log in to access the fitness sanctuary.');
+        }
+      } catch (err) {
+        console.error('Error retrieving user:', err);
+        setError('Unable to retrieve user information.');
       }
     };
     initUser();
@@ -186,7 +192,36 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
       const state = `${muscle}_${fitnessLevel}`;
       const reward = completed ? REWARD_COMPLETED : REWARD_SKIPPED;
 
+      // Parse exercise metrics with proper type casting
+      let repsCompleted = 0;
+      let setsCompleted = 0;
+      let durationMinutes = 0.00;
+      let caloriesBurned = 0;
+
+      if (completed) {
+        // Only store values if exercise was completed
+        if (exercise.sets) {
+          const setsMatch = exercise.sets.match(/(\d+)\s*Sets\s*\/\s*(\d+)\s*Reps/i);
+          if (setsMatch) {
+            setsCompleted = parseInt(setsMatch[1], 10);
+            repsCompleted = parseInt(setsMatch[2], 10);
+          }
+        }
+
+        if (exercise.duration) {
+          const durationMatch = exercise.duration.match(/(\d+)/);
+          if (durationMatch) {
+            durationMinutes = parseFloat(durationMatch[1]);
+          }
+        }
+
+        if (exercise.caloriesBurn) {
+          caloriesBurned = parseInt(exercise.caloriesBurn, 10);
+        }
+      }
+
       try {
+        // Update Q-table
         await fetch(`${API_BASE_URL}/update-q-table`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -197,8 +232,33 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
             reward
           })
         });
+
+        // Save complete workout history with all metrics
+        const historyResponse = await fetch(`${API_BASE_URL}/save-workout-history`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            exerciseId: exercise.id,
+            completed,
+            repsCompleted,
+            setsCompleted,
+            durationMinutes,
+            caloriesBurned,
+            notes: completed 
+              ? `Completed ${exercise.name} - ${caloriesBurned} calories burned` 
+              : `Skipped ${exercise.name}`
+          })
+        });
+
+        const historyData = await historyResponse.json();
+        if (historyResponse.ok) {
+          console.log('✓ Workout history saved:', historyData.data);
+        } else {
+          console.error('✗ Failed to save workout history:', historyData.error);
+        }
       } catch (err) {
-        console.error('Error updating Q-table:', err);
+        console.error('Error updating Q-table or saving workout history:', err);
       }
     }
 

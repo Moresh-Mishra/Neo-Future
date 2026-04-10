@@ -70,9 +70,10 @@ CREATE TABLE IF NOT EXISTS user_history (
     workout_date DATE,
     completed BOOLEAN DEFAULT FALSE,
     feedback INT,
-    reps_completed INT,
-    sets_completed INT,
-    duration_minutes DECIMAL(5,2),
+    reps_completed INT DEFAULT 0,
+    sets_completed INT DEFAULT 0,
+    duration_minutes DECIMAL(5,2) DEFAULT 0.00,
+    calories_burned INT DEFAULT 0,
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 

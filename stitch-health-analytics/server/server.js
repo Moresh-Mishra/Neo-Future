@@ -314,6 +314,101 @@ app.post('/api/update-q-table', async (req, res) => {
   }
 });
 
+// Save complete workout history with all exercise metrics
+app.post('/api/save-workout-history', async (req, res) => {
+  try {
+    const {
+      userId,
+      exerciseId,
+      completed,
+      repsCompleted = 0,
+      setsCompleted = 0,
+      durationMinutes = 0.00,
+      caloriesBurned = 0,
+      notes = ''
+    } = req.body;
+
+    console.log('📥 Received workout history:', {
+      userId,
+      exerciseId,
+      completed,
+      repsCompleted,
+      setsCompleted,
+      durationMinutes,
+      caloriesBurned,
+      notes
+    });
+
+    // Validate required fields
+    if (!userId || !exerciseId) {
+      console.warn('❌ Missing required fields: userId or exerciseId');
+      return res.status(400).json({
+        success: false,
+        error: 'userId and exerciseId are required'
+      });
+    }
+
+    // Verify user exists
+    const [userExists] = await mysqlPool.query(
+      'SELECT user_id FROM users WHERE user_id = ?',
+      [userId]
+    );
+
+    if (userExists.length === 0) {
+      console.warn(`❌ User ${userId} not found in database`);
+      return res.status(400).json({
+        success: false,
+        error: `User ${userId} does not exist in database`
+      });
+    }
+
+    console.log(`✓ User ${userId} verified`);
+
+    // Ensure proper type casting
+    const finalReps = parseInt(repsCompleted, 10) || 0;
+    const finalSets = parseInt(setsCompleted, 10) || 0;
+    const finalDuration = parseFloat(durationMinutes) || 0.00;
+    const finalCalories = parseInt(caloriesBurned, 10) || 0;
+
+    console.log('✓ Parsed values:', {
+      finalReps,
+      finalSets,
+      finalDuration,
+      finalCalories
+    });
+
+    // Insert workout history with all metrics
+    console.log('📝 Attempting to insert into user_history...');
+    const [result] = await mysqlPool.query(
+      `INSERT INTO user_history 
+       (user_id, exercise_id, workout_date, completed, reps_completed, sets_completed, duration_minutes, calories_burned, notes)
+       VALUES (?, ?, CURDATE(), ?, ?, ?, ?, ?, ?)`,
+      [userId, exerciseId, completed ? 1 : 0, finalReps, finalSets, finalDuration, finalCalories, notes]
+    );
+
+    console.log('✅ Workout saved successfully. History ID:', result.insertId);
+
+    res.json({
+      success: true,
+      message: 'Workout history saved successfully',
+      historyId: result.insertId,
+      data: {
+        userId,
+        exerciseId,
+        completed,
+        repsCompleted: finalReps,
+        setsCompleted: finalSets,
+        durationMinutes: finalDuration,
+        caloriesBurned: finalCalories
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error saving workout history:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // ==================== AUTHENTICATION ROUTES ====================
 
 // Register new user
