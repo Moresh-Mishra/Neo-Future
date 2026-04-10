@@ -1,15 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import TopNavBar from './TopNavBar';
 import Footer from './Footer';
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
-const PANVEL_BASE_URL = process.env.REACT_APP_PANVEL_BASE_URL || 'http://localhost:5000';
+const PANVEL_BASE_URL = process.env.REACT_APP_PANVEL_BASE_URL || '';
+const PUBLIC_URL = process.env.PUBLIC_URL || '';
+const AVATAR_BASE_URL = PANVEL_BASE_URL
+  ? `${PANVEL_BASE_URL}/static/avatars`
+  : `${PUBLIC_URL}/avatars`;
+const TTS_ENDPOINTS = ['webgpu', 'ws://127.0.0.1:8882/', 'wasm'];
+const VOICE_URL = `${PUBLIC_URL}/voices`;
 
 const AVATARS = {
   julia: {
     avatar: {
-      url: `${PANVEL_BASE_URL}/static/avatars/julia.glb`,
+      url: `${AVATAR_BASE_URL}/julia.glb`,
       body: 'F',
       avatarMood: 'neutral',
     },
@@ -19,7 +23,7 @@ const AVATARS = {
   },
   david: {
     avatar: {
-      url: `${PANVEL_BASE_URL}/static/avatars/david.glb`,
+      url: `${AVATAR_BASE_URL}/david.glb`,
       body: 'M',
       avatarMood: 'neutral',
     },
@@ -32,6 +36,12 @@ const AVATARS = {
 const AVATAR_LABELS = {
   julia: 'Julia',
   david: 'David',
+};
+
+const PANVEL_CAMERA = {
+  cameraView: 'upper',
+  cameraRotateEnable: false,
+  mixerGainSpeech: 3,
 };
 
 const AICompanion = () => {
@@ -73,8 +83,8 @@ const AICompanion = () => {
   const [avatarReady, setAvatarReady] = useState(false);
   const [avatarError, setAvatarError] = useState('');
   const messagesEndRef = useRef(null);
-  const avatarMountRef = useRef(null);
-  const avatarInstanceRef = useRef(null);
+  const avatarContainerRef = useRef(null);
+  const avatarInstanceRef = useRef({ head: null, headtts: null });
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -85,6 +95,21 @@ const AICompanion = () => {
     scrollToBottom();
   }, [messages]);
 
+  const speakResponse = async (text) => {
+    const headtts = avatarInstanceRef.current?.headtts;
+    if (!headtts || !text) {
+      return;
+    }
+
+    try {
+      setIsSpeaking(true);
+      await headtts.synthesize({ input: text });
+    } catch (speechError) {
+      console.error('HeadTTS synthesize error:', speechError);
+      setIsSpeaking(false);
+    }
+  };
+
   // Initialize chat on component mount
   useEffect(() => {
     initializeChat();
@@ -94,8 +119,61 @@ const AICompanion = () => {
   useEffect(() => {
     let cancelled = false;
 
+    const ensureHeadSetup = async () => {
+      if (!avatarContainerRef.current) {
+        return null;
+      }
+
+      if (avatarInstanceRef.current.head && avatarInstanceRef.current.headtts) {
+        return avatarInstanceRef.current;
+      }
+
+      const TalkingHead = window.TalkingHead;
+      const HeadTTS = window.HeadTTS;
+
+      if (!TalkingHead || !HeadTTS) {
+        throw new Error('TalkingHead modules not loaded');
+      }
+
+      const head = new TalkingHead(avatarContainerRef.current, {
+        ttsEndpoint: 'N/A',
+        lipsyncModules: [],
+        cameraView: PANVEL_CAMERA.cameraView,
+        mixerGainSpeech: PANVEL_CAMERA.mixerGainSpeech,
+        cameraRotateEnable: PANVEL_CAMERA.cameraRotateEnable,
+      });
+
+      const headtts = new HeadTTS({
+        endpoints: TTS_ENDPOINTS,
+        languages: ['en-us'],
+        voices: ['af_bella', 'am_fenrir'],
+        voiceURL: VOICE_URL,
+        audioCtx: head.audioCtx,
+        trace: 0,
+      });
+
+      headtts.onmessage = (msg) => {
+        if (msg.type === 'audio') {
+          try {
+            head.speakAudio(msg.data, {});
+          } catch (speechError) {
+            console.error('TalkingHead playback error:', speechError);
+          }
+        } else if (msg.type === 'error') {
+          console.error('HeadTTS error:', msg.data?.error || 'Unknown error');
+        }
+      };
+
+      headtts.onend = () => {
+        setIsSpeaking(false);
+      };
+
+      avatarInstanceRef.current = { head, headtts };
+      return avatarInstanceRef.current;
+    };
+
     const loadAvatar = async () => {
-      if (!avatarMountRef.current) {
+      if (!avatarContainerRef.current) {
         return;
       }
 
@@ -103,102 +181,26 @@ const AICompanion = () => {
       setAvatarError('');
 
       try {
-        if (cancelled) {
+        const instance = await ensureHeadSetup();
+        if (cancelled || !instance) {
           return;
         }
 
-        avatarMountRef.current.innerHTML = '';
-
         const person = AVATARS[currentAvatar] || AVATARS.julia;
-          const scene = new THREE.Scene();
-          const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-          const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-          renderer.setPixelRatio(window.devicePixelRatio || 1);
-          renderer.setClearColor(0x000000, 0);
-          renderer.setSize(avatarMountRef.current.clientWidth, avatarMountRef.current.clientHeight, true);
-          avatarMountRef.current.appendChild(renderer.domElement);
 
-          const ambientLight = new THREE.AmbientLight(0xffffff, 1.8);
-          const keyLight = new THREE.DirectionalLight(0xffffff, 2.6);
-          keyLight.position.set(1.8, 2.2, 2.8);
-          const fillLight = new THREE.DirectionalLight(0x9ab89d, 1.1);
-          fillLight.position.set(-1.2, 0.9, 1.8);
-          scene.add(ambientLight, keyLight, fillLight);
+        await Promise.all([
+          instance.head.showAvatar(person.avatar),
+          instance.headtts.connect(),
+        ]);
 
-          const loader = new GLTFLoader();
-          const gltf = await loader.loadAsync(person.avatar.url);
-
-          if (cancelled) {
-            renderer.dispose();
-            return;
-          }
-
-          const model = gltf.scene || gltf.scenes?.[0];
-          const box = new THREE.Box3().setFromObject(model);
-          const size = box.getSize(new THREE.Vector3());
-          const center = box.getCenter(new THREE.Vector3());
-
-          model.position.sub(center);
-          const maxDimension = Math.max(size.x, size.y, size.z);
-          const scale = 1.2 / (maxDimension || 1);
-          model.scale.setScalar(scale);
-          model.position.y -= size.y * scale * 0.08;
-          scene.add(model);
-
-          avatarInstanceRef.current = { renderer, scene, camera, model, keyLight, fillLight };
-
-          const scaledHeight = size.y * scale;
-          const torsoFocusY = scaledHeight * 0.52;
-          const headHalfHeight = Math.max(0.38, scaledHeight * 0.30);
-          const fovRad = (camera.fov * Math.PI) / 180;
-          const distance = (headHalfHeight / Math.tan(fovRad / 2)) * 1.8;
-
-          camera.position.set(0, torsoFocusY + 0.22, distance);
-          camera.lookAt(0, torsoFocusY, 0);
-
-          const resize = () => {
-            if (!avatarMountRef.current) {
-              return;
-            }
-            const width = avatarMountRef.current.clientWidth;
-            const height = avatarMountRef.current.clientHeight;
-            renderer.setSize(width, height, true);
-            camera.aspect = width / height;
-            camera.updateProjectionMatrix();
-          };
-
-          const resizeObserver = new ResizeObserver(resize);
-          resizeObserver.observe(avatarMountRef.current);
-          resize();
-
-          const clock = new THREE.Clock();
-          const animate = () => {
-            if (cancelled) {
-              return;
-            }
-
-            const t = clock.getElapsedTime();
-            if (model) {
-              model.rotation.y = Math.sin(t * 0.6) * 0.12;
-              model.position.y = -size.y * scale * 0.12 + Math.sin(t * 1.1) * 0.01;
-            }
-
-            renderer.render(scene, camera);
-            avatarInstanceRef.current.frameId = window.requestAnimationFrame(animate);
-          };
-
-          const frameId = window.requestAnimationFrame(animate);
-
-          avatarInstanceRef.current = {
-            renderer,
-            scene,
-            camera,
-            model,
-            keyLight,
-            fillLight,
-            frameId,
-            resizeObserver,
-          };
+        instance.head.setView(instance.head.viewName, person.view);
+        instance.head.cameraClock = 999;
+        instance.headtts.setup({
+          voice: person.avatar.body === 'M' ? 'am_fenrir' : 'af_bella',
+          language: 'en-us',
+          speed: 1,
+          audioEncoding: 'wav',
+        });
 
         if (!cancelled) {
           setAvatarReady(true);
@@ -215,47 +217,14 @@ const AICompanion = () => {
 
     return () => {
       cancelled = true;
-      try {
-        if (avatarInstanceRef.current?.frameId) {
-          window.cancelAnimationFrame(avatarInstanceRef.current.frameId);
-        }
-        if (avatarInstanceRef.current?.resizeObserver) {
-          avatarInstanceRef.current.resizeObserver.disconnect();
-        }
-        if (avatarInstanceRef.current?.renderer) {
-          avatarInstanceRef.current.renderer.dispose();
-        }
-        avatarInstanceRef.current?.dispose?.();
-      } catch (disposeError) {
-        console.warn('Avatar cleanup error:', disposeError);
-      }
-      avatarInstanceRef.current = null;
     };
   }, [currentAvatar]);
 
   useEffect(() => {
-    if (!avatarInstanceRef.current) {
+    if (!avatarInstanceRef.current?.head) {
       return;
     }
-
-    const { keyLight, fillLight, renderer, scene, camera } = avatarInstanceRef.current;
-    if (avatarMood === 'happy') {
-      keyLight?.color?.set?.(0xffd8a8);
-      fillLight?.color?.set?.(0xfff0db);
-    } else if (avatarMood === 'sad') {
-      keyLight?.color?.set?.(0xa9b8ff);
-      fillLight?.color?.set?.(0xd7defc);
-    } else if (avatarMood === 'calm') {
-      keyLight?.color?.set?.(0xc8f0dd);
-      fillLight?.color?.set?.(0xe2fff2);
-    } else {
-      keyLight?.color?.set?.(0xffffff);
-      fillLight?.color?.set?.(0x9ab89d);
-    }
-
-    if (renderer && scene && camera) {
-      renderer.render(scene, camera);
-    }
+    avatarInstanceRef.current.head.avatarMood = avatarMood;
   }, [avatarMood]);
 
   // Initialize chat session with Panvel backend
@@ -412,9 +381,7 @@ const AICompanion = () => {
         };
         setMessages(prev => [...prev, aiMessage]);
 
-        // Set speaking state briefly to show avatar is responding
-        setIsSpeaking(true);
-        setTimeout(() => setIsSpeaking(false), 2000);
+        speakResponse(responseMessage);
       }
     } catch (err) {
       console.error('Error calling AI API:', err);
@@ -464,7 +431,7 @@ const AICompanion = () => {
         {/* Immersive Background */}
         <div className="absolute inset-0 z-0">
           <img
-            className="w-full h-full object-cover opacity-30"
+            className="w-full h-full object-cover opacity-40"
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuCP8Bvu7Yf1g5a8V3uvS7pP4mIyURSdN0UYAu3FTtSHwmHQpfdKM72yJKi8k-4iWq2YHZU5trnOcfLhgi4g66WPPw74Re5WsIc8NJLTskztevuJCDIA8nXp1SdiilQ-0rAAZJKCBS5NURPt6gPExBBI-o0_80zrB_riGA3mm1ynt1aTcTmBrVfDXlNDBwcfDFEmXRR7ZbfTb7Z-WdypBqTNC_DjUxcs2KOzczlOPtnSVX_DSU2uQbg8VP-7R7w7u0HTskSy50P4xXE"
             alt="Zen garden background"
           />
@@ -477,7 +444,7 @@ const AICompanion = () => {
             <div className="group relative mb-6 h-52 w-52 sm:h-64 sm:w-64 md:mb-8 md:h-[min(46vh,320px)] md:w-[min(46vh,320px)] lg:h-[min(56vh,420px)] lg:w-[min(56vh,420px)]">
               <div className="absolute inset-0 rounded-full border border-primary/10 animate-pulse bg-primary/5"></div>
               <div className="absolute inset-0 overflow-hidden rounded-full bg-surface/20 shadow-2xl">
-                <div ref={avatarMountRef} className="h-full w-full" />
+                <div ref={avatarContainerRef} className="h-full w-full" />
                 {!avatarReady && !avatarError && (
                   <div className="absolute inset-0 flex items-center justify-center bg-surface/50 backdrop-blur-sm">
                     <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>

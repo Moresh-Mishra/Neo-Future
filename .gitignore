@@ -3,3 +3,7 @@ package-lock.json
 dist
 .claude
 Exercise recommendation project
+.venv
+__pycache__/
+__pycache__
+.env
