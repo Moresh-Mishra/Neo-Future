@@ -68,7 +68,6 @@ const AICompanion = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentAvatar, setCurrentAvatar] = useState('julia');
   const [avatarMood, setAvatarMood] = useState('neutral');
-  const [detectedEmotions, setDetectedEmotions] = useState([]);
   const [error, setError] = useState(null);
   const [avatarReady, setAvatarReady] = useState(false);
   const [avatarError, setAvatarError] = useState('');
@@ -391,10 +390,6 @@ const AICompanion = () => {
       if (data.avatarMood) {
         setAvatarMood(data.avatarMood);
       }
-      if (data.emotions) {
-        setDetectedEmotions(data.emotions);
-      }
-
       // Get response message
       let responseMessage = data.response;
       if (typeof responseMessage === 'object' && responseMessage !== null) {
@@ -448,13 +443,6 @@ const AICompanion = () => {
       handleSendMessage();
     }, 50);
   };
-
-  // Emotional Resonance Data
-  const emotionalResonance = [
-    { name: 'Calm', value: 85 },
-    { name: 'Joy', value: 40 },
-    { name: 'Reflection', value: 65 },
-  ];
 
   return (
     <div className="min-h-screen bg-surface text-on-surface font-['Manrope'] flex flex-col">
@@ -513,37 +501,6 @@ const AICompanion = () => {
               ))}
             </div>
 
-            {/* Emotional Resonance Meter - Dynamic */}
-            <div className="w-full max-w-md rounded-2xl bg-surface-container-low/60 p-4 backdrop-blur-lg botanical-shadow md:p-6">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-xs font-bold uppercase tracking-widest text-primary">Emotional Resonance</span>
-                <span className="text-xs text-on-surface-variant font-medium">
-                  {detectedEmotions.length > 0
-                    ? `${detectedEmotions[0]?.percentage?.toFixed(0) || 92}% ${detectedEmotions[0]?.emotion || 'Aligned'}`
-                    : '92% Alignment'}
-                </span>
-              </div>
-              <div className="flex items-end gap-2 h-16 mb-2">
-                {emotionalResonance.map((emotion) => (
-                  <div key={emotion.name} className="flex-1 bg-primary/20 rounded-t-lg relative group h-full">
-                    <div
-                      className="absolute bottom-0 w-full bg-primary rounded-t-lg transition-all duration-500"
-                      style={{ height: `${emotion.value}%` }}
-                    ></div>
-                    <span className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 text-[10px] bg-on-surface text-surface px-2 py-0.5 rounded">
-                      {emotion.name}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-[11px] text-on-surface-variant italic">
-                {avatarMood === 'happy' && 'The guide senses joy and positive energy.'}
-                {avatarMood === 'sad' && 'The guide detects a need for compassion and support.'}
-                {avatarMood === 'calm' && 'The guide detects a deep sense of tranquil presence.'}
-                {avatarMood === 'neutral' && 'The guide is ready to listen and respond.'}
-                {!['happy', 'sad', 'calm', 'neutral'].includes(avatarMood) && 'The guide detects a deep sense of tranquil presence.'}
-              </p>
-            </div>
           </div>
 
           {/* Right: Chat Interface - Fully Functional */}
