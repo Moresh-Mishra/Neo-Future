@@ -7,3 +7,4 @@ Exercise recommendation project
 __pycache__/
 __pycache__
 .env
+venv/
