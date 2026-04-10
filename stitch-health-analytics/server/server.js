@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
+const { hashPassword, comparePassword, generateToken, authMiddleware } = require('./auth');
 
 dotenv.config();
 
@@ -294,10 +295,185 @@ app.post('/api/update-q-table', async (req, res) => {
   }
 });
 
+// ==================== AUTHENTICATION ROUTES ====================
+
+// Register new user
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { fullName, email, phone, password, confirmPassword } = req.body;
+
+    // Validation
+    if (!fullName || !email || !password || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: 'All fields are required'
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: 'Passwords do not match'
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 6 characters'
+      });
+    }
+
+    // Check if email already exists
+    const [existingUsers] = await mysqlPool.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (existingUsers.length > 0) {
+      return res.status(409).json({
+        success: false,
+        error: 'Email already registered'
+      });
+    }
+
+    // Hash password
+    const passwordHash = await hashPassword(password);
+
+    // Create user
+    const [result] = await mysqlPool.query(
+      'INSERT INTO users (name, email, phone, password_hash) VALUES (?, ?, ?, ?)',
+      [fullName, email, phone || null, passwordHash]
+    );
+
+    // Get created user
+    const [newUser] = await mysqlPool.query(
+      'SELECT user_id, name, email, phone, created_at FROM users WHERE user_id = ?',
+      [result.insertId]
+    );
+
+    // Generate JWT token
+    const token = generateToken({
+      userId: result.insertId,
+      email: newUser[0].email
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      user: newUser[0],
+      token
+    });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Login user
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email and password are required'
+      });
+    }
+
+    // Find user by email
+    const [users] = await mysqlPool.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (users.length === 0) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid email or password'
+      });
+    }
+
+    const user = users[0];
+
+    // Verify password
+    const isValidPassword = await comparePassword(password, user.password_hash);
+
+    if (!isValidPassword) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid email or password'
+      });
+    }
+
+    // Generate JWT token
+    const token = generateToken({
+      userId: user.user_id,
+      email: user.email
+    });
+
+    // Return user info (excluding password hash)
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        user_id: user.user_id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone
+      },
+      token
+    });
+  } catch (error) {
+    console.error('Error logging in user:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Get current user (protected route)
+app.get('/api/auth/me', authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.user;
+
+    const [users] = await mysqlPool.query(
+      'SELECT user_id, name, email, phone, created_at FROM users WHERE user_id = ?',
+      [userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      user: users[0]
+    });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// ==================== END AUTHENTICATION ROUTES ====================
+
 // 7. Get or create user (SQL only - no MongoDB)
 app.post('/api/user', async (req, res) => {
   try {
-    const { userId, username, name, email } = req.body;
+    const { userId, name, email } = req.body;
 
     if (!userId) {
       return res.status(400).json({ success: false, error: 'userId is required' });
@@ -315,8 +491,8 @@ app.post('/api/user', async (req, res) => {
     } else {
       // Create new user
       const [result] = await mysqlPool.query(
-        'INSERT INTO users (user_id, username, name, email) VALUES (?, ?, ?, ?)',
-        [userId, username || `user_${userId}`, name || 'User', email || null]
+        'INSERT INTO users (user_id, name, email) VALUES (?, ?, ?)',
+        [userId, name || 'User', email || null]
       );
 
       const [newUser] = await mysqlPool.query('SELECT * FROM users WHERE user_id = ?', [userId]);

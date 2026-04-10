@@ -200,15 +200,3 @@ SELECT 'upper_back_hardcore' as state, exercise_id, 0.5, 0, CURRENT_TIMESTAMP
 FROM exercises WHERE difficulty = 'hardcore' AND target = 'upper back'
 ON DUPLICATE KEY UPDATE q_value=0.5, visit_count=0, last_updated=CURRENT_TIMESTAMP;
 
--- ============================================================
--- SUMMARY
--- ============================================================
--- This script creates 90 state-action combinations:
--- - 3 difficulty levels (beginner, intermediate, hardcore)
--- - 10 muscle targets (abs, lats, pectorals, glutes, quads, hamstrings, biceps, triceps, delts, upper back)
--- - For each exercise in that difficulty level
---
--- Initial Q-value = 0.5 (neutral, no bias)
--- Visit count = 0 (no learning yet)
--- As users complete exercises, Q-values update based on their feedback
--- ============================================================

@@ -4,6 +4,8 @@ import '../styles/emwell.css';
 // Import local images
 import backgroundForest from '../assets/background-forest.jpg';
 
+const API_URL = 'http://localhost:5000';
+
 const SignUpPage = ({ onNavigate }) => {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -14,6 +16,8 @@ const SignUpPage = ({ onNavigate }) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -22,10 +26,54 @@ const SignUpPage = ({ onNavigate }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Sign up submitted:', formData);
-    onNavigate?.('dashboard');
+    setIsLoading(true);
+    setError('');
+
+    // Validation
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+          confirmPassword: formData.confirmPassword
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store token and user info
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        onNavigate?.('dashboard');
+      } else {
+        setError(data.error || 'Registration failed');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -82,6 +130,13 @@ const SignUpPage = ({ onNavigate }) => {
 
           {/* Sign Up Form */}
           <form className="signup-form" onSubmit={handleSubmit}>
+            {error && (
+              <div className="error-message">
+                <span className="material-symbols-outlined">error</span>
+                {error}
+              </div>
+            )}
+
             <div className="form-group">
               <label className="form-label">Full Name</label>
               <input
@@ -92,6 +147,7 @@ const SignUpPage = ({ onNavigate }) => {
                 value={formData.fullName}
                 onChange={handleChange}
                 required
+                disabled={isLoading}
               />
             </div>
 
@@ -105,6 +161,7 @@ const SignUpPage = ({ onNavigate }) => {
                 value={formData.email}
                 onChange={handleChange}
                 required
+                disabled={isLoading}
               />
             </div>
 
@@ -117,7 +174,7 @@ const SignUpPage = ({ onNavigate }) => {
                 placeholder="+1 (555) 000-0000"
                 value={formData.phone}
                 onChange={handleChange}
-                required
+                disabled={isLoading}
               />
             </div>
 
@@ -132,8 +189,9 @@ const SignUpPage = ({ onNavigate }) => {
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  disabled={isLoading}
                 />
-                <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
+                <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)} disabled={isLoading}>
                   <span className="material-symbols-outlined">{showPassword ? 'visibility_off' : 'visibility'}</span>
                 </button>
               </div>
@@ -150,15 +208,20 @@ const SignUpPage = ({ onNavigate }) => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
+                  disabled={isLoading}
                 />
-                <button type="button" className="password-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                <button type="button" className="password-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)} disabled={isLoading}>
                   <span className="material-symbols-outlined">{showConfirmPassword ? 'visibility_off' : 'visibility'}</span>
                 </button>
               </div>
             </div>
 
-            <button type="submit" className="submit-btn">
-              Begin Your Journey
+            <button type="submit" className="submit-btn" disabled={isLoading}>
+              {isLoading ? (
+                <span className="loading-spinner">Creating Account...</span>
+              ) : (
+                'Begin Your Journey'
+              )}
             </button>
           </form>
 
@@ -559,6 +622,40 @@ const SignUpPage = ({ onNavigate }) => {
           text-decoration-color: rgba(89, 97, 88, 0.3);
           font-weight: 700;
           color: inherit;
+        }
+
+        .error-message {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1rem;
+          background: rgba(234, 67, 67, 0.1);
+          border: 1px solid rgba(234, 67, 67, 0.3);
+          border-radius: 0.5rem;
+          font-size: 0.875rem;
+          color: #ba2626;
+          margin-bottom: 1rem;
+        }
+
+        .error-message .material-symbols-outlined {
+          font-size: 1.25rem;
+        }
+
+        .submit-btn:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        .loading-spinner {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+        }
+
+        .form-input:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
       `}</style>
     </div>

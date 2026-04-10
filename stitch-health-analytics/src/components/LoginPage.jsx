@@ -4,15 +4,49 @@ import '../styles/emwell.css';
 // Import local images
 import backgroundForest from '../assets/background-forest.jpg';
 
+const API_URL = 'http://localhost:5000';
+
 const LoginPage = ({ onNavigate }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login submitted:', { email, password, rememberMe });
-    onNavigate?.('dashboard');
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store token and user info
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true');
+        }
+
+        onNavigate?.('dashboard');
+      } else {
+        setError(data.error || 'Login failed');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -69,6 +103,13 @@ const LoginPage = ({ onNavigate }) => {
 
           {/* Login Form */}
           <form className="login-form" onSubmit={handleSubmit}>
+            {error && (
+              <div className="error-message">
+                <span className="material-symbols-outlined">error</span>
+                {error}
+              </div>
+            )}
+
             <div className="form-group">
               <label className="form-label">Email Address</label>
               <div className="input-wrapper">
@@ -79,6 +120,7 @@ const LoginPage = ({ onNavigate }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
                 <span className="material-symbols-outlined input-icon">mail</span>
               </div>
@@ -94,6 +136,7 @@ const LoginPage = ({ onNavigate }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
                 <button type="button" className="password-toggle">
                   <span className="material-symbols-outlined">lock</span>
@@ -108,14 +151,18 @@ const LoginPage = ({ onNavigate }) => {
                   className="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
+                  disabled={isLoading}
                 />
                 <span className="checkbox-label">Remember me</span>
               </label>
-              <a href="#" className="forgot-link">Forgot password?</a>
             </div>
 
-            <button type="submit" className="submit-btn">
-              Access Your Sanctuary
+            <button type="submit" className="submit-btn" disabled={isLoading}>
+              {isLoading ? (
+                <span className="loading-spinner">Signing in...</span>
+              ) : (
+                'Access Your Sanctuary'
+              )}
             </button>
           </form>
 
@@ -553,6 +600,40 @@ const LoginPage = ({ onNavigate }) => {
           text-decoration: underline;
           font-weight: 600;
           color: inherit;
+        }
+
+        .error-message {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1rem;
+          background: rgba(234, 67, 67, 0.1);
+          border: 1px solid rgba(234, 67, 67, 0.3);
+          border-radius: 0.5rem;
+          font-size: 0.875rem;
+          color: #ba2626;
+          margin-bottom: 1rem;
+        }
+
+        .error-message .material-symbols-outlined {
+          font-size: 1.25rem;
+        }
+
+        .submit-btn:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        .loading-spinner {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+        }
+
+        .form-input:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
       `}</style>
     </div>
