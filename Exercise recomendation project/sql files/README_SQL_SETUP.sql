@@ -1,0 +1,95 @@
+-- ============================================================
+-- SQL Execution Order & Setup Guide
+-- ============================================================
+-- Run these files in the following order to set up the database schema:
+--
+-- 1. 00_create_database.sql
+--    Creates the exercise_db database
+--
+-- 2. 01_users.sql
+--    Creates the users table with auto-increment primary key
+--    Stores user profile information
+--
+-- 3. 02_exercises.sql
+--    Creates the exercises table with comprehensive exercise data
+--    Includes all fields from ExerciseDB API (target, body_part, equipment, etc.)
+--    Contains comprehensive indexes for query optimization
+--
+-- 4. 03_user_q_table.sql
+--    Creates user-specific Q-learning table
+--    Stores individual user's learned exercise preferences
+--    References users table with CASCADE delete
+--
+-- 4. 04_global_q_table.sql
+--    Creates global Q-learning table (community-wide learning)
+--    Used as fallback when user has no history
+--    Allows new users to benefit from collective workout data
+--
+-- 5. 05_user_history.sql
+--    Creates user workout history tracking table
+--    Records every exercise completed/skipped by users
+--    Enhanced with reps, sets, duration, notes for detailed tracking
+--
+-- 6. seed_global_q_table.sql
+--    Seeds initial Q-values (0.5 = neutral) for all state-action pairs
+--    Covers all 3 difficulty levels × 10 muscle targets
+--    Enables Q-learning algorithm to have starting values
+--
+-- ============================================================
+-- Database Schema Summary:
+-- ============================================================
+-- users              → User profiles (user_id INT auto-increment)
+-- exercises          → Exercise library (exercise_id VARCHAR(10) PK)
+-- user_q_table       → User learning data (references users, exercises)
+-- global_q_table     → Community learning data
+-- user_history       → Workout history (references users, exercises)
+--
+-- ============================================================
+-- Key Features of New Schema:
+-- ============================================================
+-- ✓ INT auto-increment user_id (was VARCHAR)
+-- ✓ Complete foreign key constraints with CASCADE delete
+-- ✓ Comprehensive indexes for performance
+-- ✓ Timestamps on all tables (created_at, updated_at)
+-- ✓ Q-learning tables store q_value, visit_count, timestamps
+-- ✓ User history enhanced: reps, sets, duration, notes
+-- ✓ All API data persisted: category, description, secondary_muscles
+-- ✓ Unique constraints prevent duplicate state-action pairs
+--
+-- ============================================================
+-- Example Usage:
+-- ============================================================
+--
+-- 1. Create database and schema:
+--    mysql -u root -p < 00_create_database.sql
+--    mysql -u root -p exercise_db < 01_users.sql
+--    mysql -u root -p exercise_db < 02_exercises.sql
+--    mysql -u root -p exercise_db < 03_user_q_table.sql
+--    mysql -u root -p exercise_db < 04_global_q_table.sql
+--    mysql -u root -p exercise_db < 05_user_history.sql
+--
+-- 2. Seed initial Q-values:
+--    mysql -u root -p exercise_db < seed_global_q_table.sql
+--
+-- 3. Populate exercises from ExerciseDB API:
+--    python exercise_list.py
+--    (This will download exercises and insert into exercises table)
+--
+-- 4. Run Q-learning exercise recommendation:
+--    python exercise_recommend.py
+--
+-- ============================================================
+-- Database Connections from Python:
+-- ============================================================
+-- All Python scripts use db_utils.py for connections:
+--   from db_utils import get_mysql_connection, close_connections
+--   conn, cursor = get_mysql_connection()
+--   close_connections(conn, cursor)
+--
+-- Requires .env file with:
+--   MYSQL_HOST=localhost
+--   MYSQL_USER=root
+--   MYSQL_PASSWORD=your_password
+--   MYSQL_DATABASE=exercise_db
+--
+-- ============================================================

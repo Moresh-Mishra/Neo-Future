@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import TopNavBar from './TopNavBar';
 import Footer from './Footer';
+import ExerciseRecommender from './ExerciseRecommender';
 
 const FitnessSanctuary = () => {
   const [selectedFocus, setSelectedFocus] = useState('Legs');
   const [selectedIntensity, setSelectedIntensity] = useState('Gentle');
+  const [enableRLRecommendation, setEnableRLRecommendation] = useState(false);
+  const [selectedMuscles, setSelectedMuscles] = useState([]);
+  const [fitnessLevel, setFitnessLevel] = useState('beginner');
 
   const muscleGroups = [
     { name: 'Legs', icon: 'fitness_center', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAZ_wGH_iiOxu-viBV9qS5_TFaFMZSvpCEQHxDc7rQNt6NMj1Y2F4tq4Az8o3F7VFKor-bK9JJXlNt43oV9fuuf2dhPVZSrJH1WTeXE4a_rIf-irWrB4pZoagJkHFNWeoEDnrmhuSnToY0C3MtpIkQYGMSASLhOoOrPse9K-OHnTHKCRVfRA37IaF26OBUXUrRfyNYkyEfOpV9vB_l-KHbmV_2YgYUzxLv1kF6SQFRgTOUAY-FWTcIPZPjSHr0zGiRdy8F_8HoCifE', selected: true },
@@ -20,6 +24,49 @@ const FitnessSanctuary = () => {
     { name: 'Steady', label: 'Intermediate', description: 'Increase volume and complexity for consistent growth.', icon: 'trending_up', color: 'bg-secondary-container' },
     { name: 'Vigorous', label: 'Hardcore', description: 'High intensity pushing boundaries of endurance and power.', icon: 'local_fire_department', color: 'bg-error-container/20' },
   ];
+
+  // Map muscle names to exercise database targets
+  const muscleToTargetMap = {
+    'Legs': 'quadriceps',
+    'Chest': 'pectorals',
+    'Core': 'abs',
+    'Back': 'lats',
+    'Shoulders': 'delts',
+    'Arms': 'biceps'
+  };
+
+  // Handle muscle selection for RL mode
+  const toggleMuscleSelection = (muscleName) => {
+    const targetMuscle = muscleToTargetMap[muscleName] || muscleName.toLowerCase();
+    setSelectedMuscles(prev => {
+      if (prev.includes(targetMuscle)) {
+        return prev.filter(m => m !== targetMuscle);
+      }
+      if (prev.length >= 3) {
+        return prev; // Max 3 muscles
+      }
+      return [...prev, targetMuscle];
+    });
+  };
+
+  // Map intensity to fitness level
+  const intensityToFitnessLevel = {
+    'Gentle': 'beginner',
+    'Steady': 'intermediate',
+    'Vigorous': 'expert'
+  };
+
+  // Handle starting RL recommendation
+  const handleStartRLRecommendation = () => {
+    setFitnessLevel(intensityToFitnessLevel[selectedIntensity]);
+    setEnableRLRecommendation(true);
+  };
+
+  // Handle workout completion
+  const handleWorkoutComplete = (workoutPlan) => {
+    console.log('Workout completed:', workoutPlan);
+    // Can add additional logic here (e.g., show celebration, save to history)
+  };
 
   const exercises = [
     {
@@ -72,10 +119,16 @@ const FitnessSanctuary = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-              {muscleGroups.map((muscle) => (
+              {muscleGroups.map((muscle) => {
+                const targetMuscle = muscleToTargetMap[muscle.name] || muscle.name.toLowerCase();
+                const isSelectedForRL = selectedMuscles.includes(targetMuscle);
+                return (
                 <button
                   key={muscle.name}
-                  onClick={() => setSelectedFocus(muscle.name)}
+                  onClick={() => {
+                    setSelectedFocus(muscle.name);
+                    toggleMuscleSelection(muscle.name);
+                  }}
                   className={`group relative aspect-[1/1.12] overflow-hidden rounded-xl border border-outline-variant/40 bg-surface-container-low transition-all duration-300 hover:border-primary/50 ${
                     selectedFocus === muscle.name ? 'border-primary bg-primary-container/20' : ''
                   }`}
@@ -103,8 +156,14 @@ const FitnessSanctuary = () => {
                       <span className="material-symbols-outlined text-[13px] text-on-primary">check</span>
                     </div>
                   )}
+                  {isSelectedForRL && enableRLRecommendation && (
+                    <div className="absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-secondary">
+                      <span className="material-symbols-outlined text-[13px] text-on-secondary">auto_awesome</span>
+                    </div>
+                  )}
                 </button>
-              ))}
+                );
+              })}
             </div>
           </section>
 
@@ -154,7 +213,7 @@ const FitnessSanctuary = () => {
             </div>
           </section>
 
-          {/* Step 3: Exercise Selection */}
+          {/* Step 3: Exercise Selection - RL Integration */}
           <section className="space-y-5">
             <div className="flex items-end justify-between">
               <div>
@@ -163,63 +222,161 @@ const FitnessSanctuary = () => {
                 </span>
                 <h3 className="text-2xl font-semibold text-on-surface">Exercise Selection</h3>
                 <p className="mt-1 text-xs text-on-surface-variant">
-                  Recommended for {selectedFocus} • {selectedIntensity}
+                  Choose your workout mode
                 </p>
               </div>
             </div>
 
-            <div className="space-y-3 rounded-2xl border border-outline-variant/25 bg-surface-container-low p-3 md:p-4">
-              {exercises.map((exercise, index) => (
-                <div
-                  key={index}
-                  className="group flex items-center justify-between rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-3 transition-shadow duration-300 hover:shadow-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="hidden h-10 w-10 overflow-hidden rounded-md sm:block">
-                      <img
-                        alt={exercise.name}
-                        className="h-full w-full object-cover"
-                        src={exercise.image}
-                      />
-                    </div>
-                    <div>
-                      <h5 className="text-sm font-semibold text-on-surface">{exercise.name}</h5>
-                      <div className="mt-1 flex items-center gap-3">
-                        <span className="flex items-center text-[11px] text-on-surface-variant">
-                          <span className="material-symbols-outlined mr-1 text-[12px]">timer</span> {exercise.duration}
-                        </span>
-                        <span className="flex items-center text-[11px] text-on-surface-variant">
-                          <span className="material-symbols-outlined mr-1 text-[12px]">history</span> {exercise.sets}
-                        </span>
+            {/* Mode Selection */}
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {/* Classic Mode */}
+              <button
+                onClick={() => setEnableRLRecommendation(false)}
+                className={`rounded-2xl border p-4 text-left transition-all duration-300 ${
+                  !enableRLRecommendation
+                    ? 'border-primary bg-primary-container/55'
+                    : 'border-outline-variant/40 bg-surface-container-low hover:border-primary/45'
+                }`}
+              >
+                <div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-full ${!enableRLRecommendation ? 'bg-primary' : 'bg-surface-container-high'}`}>
+                  <span
+                    className="material-symbols-outlined text-base"
+                    style={{ color: !enableRLRecommendation ? '#e9ffe5' : '' }}
+                  >
+                    fitness_center
+                  </span>
+                </div>
+                <h4 className="text-base font-semibold text-on-surface">Classic Mode</h4>
+                <p className="mb-3 text-xs text-on-surface-variant">
+                  Browse exercises manually for {selectedFocus}
+                </p>
+                <span className="inline-flex items-center text-[11px] font-semibold text-on-surface-variant">
+                  {!enableRLRecommendation ? (
+                    <>
+                      Selected <span className="material-symbols-outlined ml-1 text-[14px]">check_circle</span>
+                    </>
+                  ) : (
+                    <>
+                      Choose <span className="material-symbols-outlined ml-1 text-[14px]">arrow_forward</span>
+                    </>
+                  )}
+                </span>
+              </button>
+
+              {/* AI-Powered RL Mode */}
+              <button
+                onClick={handleStartRLRecommendation}
+                className={`rounded-2xl border p-4 text-left transition-all duration-300 ${
+                  enableRLRecommendation
+                    ? 'border-primary bg-primary-container/55'
+                    : 'border-outline-variant/40 bg-surface-container-low hover:border-primary/45'
+                }`}
+              >
+                <div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-full ${enableRLRecommendation ? 'bg-primary' : 'bg-surface-container-high'}`}>
+                  <span
+                    className="material-symbols-outlined text-base"
+                    style={{ color: enableRLRecommendation ? '#e9ffe5' : '' }}
+                  >
+                    auto_awesome
+                  </span>
+                </div>
+                <h4 className="text-base font-semibold text-on-surface">AI-Powered RL</h4>
+                <p className="mb-3 text-xs text-on-surface-variant">
+                  Personalized recommendations using Q-Learning
+                </p>
+                <span className="inline-flex items-center text-[11px] font-semibold text-on-surface-variant">
+                  {enableRLRecommendation ? (
+                    <>
+                      Selected <span className="material-symbols-outlined ml-1 text-[14px]">check_circle</span>
+                    </>
+                  ) : (
+                    <>
+                      Choose <span className="material-symbols-outlined ml-1 text-[14px]">arrow_forward</span>
+                    </>
+                  )}
+                </span>
+              </button>
+            </div>
+
+            {/* RL Recommendation Component */}
+            {enableRLRecommendation && (
+              <div className="rounded-2xl border border-primary/30 bg-primary-container/10 p-4">
+                <div className="mb-4 flex items-start gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary">
+                    <span className="material-symbols-outlined text-base text-on-primary">psychology</span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-primary">AI Exercise Recommendation</h4>
+                    <p className="text-xs text-on-surface-variant">
+                      Your workout will be personalized based on your selections using reinforcement learning.
+                      The system learns from your preferences to improve future recommendations.
+                    </p>
+                  </div>
+                </div>
+
+                <ExerciseRecommender
+                  selectedMuscles={selectedMuscles.length > 0 ? selectedMuscles : Object.values(muscleToTargetMap).slice(0, 3)}
+                  fitnessLevel={fitnessLevel}
+                  onWorkoutComplete={handleWorkoutComplete}
+                />
+              </div>
+            )}
+
+            {/* Classic Exercise List */}
+            {!enableRLRecommendation && (
+              <div className="space-y-3 rounded-2xl border border-outline-variant/25 bg-surface-container-low p-3 md:p-4">
+                {exercises.map((exercise, index) => (
+                  <div
+                    key={index}
+                    className="group flex items-center justify-between rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-3 transition-shadow duration-300 hover:shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="hidden h-10 w-10 overflow-hidden rounded-md sm:block">
+                        <img
+                          alt={exercise.name}
+                          className="h-full w-full object-cover"
+                          src={exercise.image}
+                        />
+                      </div>
+                      <div>
+                        <h5 className="text-sm font-semibold text-on-surface">{exercise.name}</h5>
+                        <div className="mt-1 flex items-center gap-3">
+                          <span className="flex items-center text-[11px] text-on-surface-variant">
+                            <span className="material-symbols-outlined mr-1 text-[12px]">timer</span> {exercise.duration}
+                          </span>
+                          <span className="flex items-center text-[11px] text-on-surface-variant">
+                            <span className="material-symbols-outlined mr-1 text-[12px]">history</span> {exercise.sets}
+                          </span>
+                        </div>
                       </div>
                     </div>
+                    <button className="rounded-full p-2 text-primary transition-colors hover:bg-primary-container">
+                      <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                    </button>
                   </div>
-                  <button className="rounded-full p-2 text-primary transition-colors hover:bg-primary-container">
-                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                ))}
+
+                <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="rounded-xl bg-primary-container px-3 py-2">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-on-primary-container">
+                        Estimated Effort
+                      </p>
+                      <p className="text-sm font-semibold text-primary">27 Min</p>
+                    </div>
+                    <div className="rounded-xl bg-secondary-container px-3 py-2">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-on-secondary-container">
+                        Calories Burn
+                      </p>
+                      <p className="text-sm font-semibold text-secondary">~180 kcal</p>
+                    </div>
+                  </div>
+                  <button className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-dim sm:w-auto">
+                    Start Routine
                   </button>
                 </div>
-              ))}
-
-              <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="rounded-xl bg-primary-container px-3 py-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-on-primary-container">
-                      Estimated Effort
-                    </p>
-                    <p className="text-sm font-semibold text-primary">27 Min</p>
-                  </div>
-                  <div className="rounded-xl bg-secondary-container px-3 py-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-on-secondary-container">
-                      Calories Burn
-                    </p>
-                    <p className="text-sm font-semibold text-secondary">~180 kcal</p>
-                  </div>
-                </div>
-                <button className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-dim sm:w-auto">
-                  Start Routine
-                </button>
               </div>
-            </div>
+            )}
           </section>
         </div>
       </main>
