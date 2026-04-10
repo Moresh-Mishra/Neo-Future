@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import TopNavBar from './TopNavBar';
 import Footer from './Footer';
+import heroForest from '../assets/background-forest.jpg';
+import resourceBreathing from '../assets/process-journal.jpg';
 
 const MentalWellbeing = () => {
   const [selectedMood, setSelectedMood] = useState(null);
@@ -20,7 +22,8 @@ const MentalWellbeing = () => {
       description: 'Release tension with focused breathing and muscle relaxation techniques.',
       sessions: '12 Sessions',
       bgColor: 'bg-[#dde5d9]',
-      textColor: '#436745',
+      textColorClass: 'text-[#2f4b3a]',
+      mutedTextClass: 'text-[#3e5b4a]',
     },
     {
       icon: 'bedtime',
@@ -28,7 +31,8 @@ const MentalWellbeing = () => {
       description: 'Gentle soundscapes and narrations to guide you into restorative rest.',
       sessions: '8 Sessions',
       bgColor: 'bg-tertiary-container',
-      textColor: 'text-on-tertiary-container',
+      textColorClass: 'text-[#2f4b3a]',
+      mutedTextClass: 'text-[#3e5b4a]',
     },
     {
       icon: 'center_focus_strong',
@@ -36,7 +40,8 @@ const MentalWellbeing = () => {
       description: 'Sharpen your mind and eliminate distractions through presence.',
       sessions: '15 Sessions',
       bgColor: 'bg-[#dde5d9]',
-      textColor: '#436745',
+      textColorClass: 'text-[#2f4b3a]',
+      mutedTextClass: 'text-[#3e5b4a]',
     },
     {
       icon: 'bolt',
@@ -44,7 +49,8 @@ const MentalWellbeing = () => {
       description: 'Short, powerful sessions for a mental refresh during your busy day.',
       sessions: '20 Sessions',
       bgColor: 'bg-secondary-fixed',
-      textColor: '#22472f',
+      textColorClass: 'text-[#22472f]',
+      mutedTextClass: 'text-[#355a40]',
     },
   ];
 
@@ -53,7 +59,7 @@ const MentalWellbeing = () => {
       type: 'Article',
       title: 'The Science of Deep Breathing',
       description: 'Understanding how autonomic nervous system regulation affects your mental clarity.',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC8cXDS6nDo1-AV_aGB5vjAGfg2cDOdkS8R9qspvMjHx2DlSKqsdB3aIaxKrySB8G3J6p4QHeQX-NtKgx3LcYshFgeI1TcLBOiSB2PsnfFSbuj90kMv1irV27Mz_G5ARK-Aiix98D5lXGGF9eGgmpszmf6gaK3w2qbyZ3aYTMbtgVg7oZNRLmYIZg90CCFUnms6FmjffnnCw-gVbcReGZOW8gUFqOM8uwvDymRVVeUkwxo2womvcD7VAfFxv_kFEZ8HLsvglE0dMzY',
+      image: resourceBreathing,
     },
     {
       type: 'Interactive',
@@ -81,7 +87,7 @@ const MentalWellbeing = () => {
               <img
                 alt="Serene forest"
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5DyzX7XUoGk5xfBiP7HQVxkgVgyTWWCmtxgatUIjc5jCSO1FHIyNMLYTjmOQa1n-eSHhrP_cz6lFtaNZqBh8b9JsftRczsubfwnkiX09NV3b-kgnmODbwTL9kDg0lzHsvfn7_Nucxw5UTreL36qu_sy2xT8QE1nkhUXIUvXLi9gRA9kFpAg4oLB28PYCkZKIEX-ExEP1XHdrk7MkVj_-VSKMwggy5huyRw3_OsGpUhVB9maaAQoo9amfdyIYpZrzjG3vqWsIZudcZxh6ZbO_XW27oFZEmUzwLAVgS95dabwJrgDSS7T5nZ1zKqRtwfuEJRFpJ7kNTcgaJeEGk0RF4Uzw"
+                src={heroForest}
               />
               <div className="relative z-20 flex h-full max-w-2xl flex-col justify-center px-5 text-white md:px-12">
                 <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#7DA47D] mb-4">Featured Session</span>
@@ -122,18 +128,18 @@ const MentalWellbeing = () => {
                   {meditationCategories.map((category, index) => (
                     <div
                       key={index}
-                      className={`${category.bgColor} p-6 rounded-xl hover:bg-white transition-all cursor-pointer group border border-transparent hover:border-[#7DA47D]/20`}
+                      className={`${category.bgColor} ${category.textColorClass} p-6 rounded-xl hover:bg-white transition-all cursor-pointer group border border-transparent hover:border-[#7DA47D]/20`}
                     >
                       <div
                         className="w-12 h-12 rounded-lg flex items-center justify-center mb-6 transition-transform group-hover:scale-110"
-                        style={{ color: category.textColor }}
+                        style={{ color: 'currentColor' }}
                       >
                         <span className="material-symbols-outlined">{category.icon}</span>
                       </div>
                       <h3 className="text-xl font-headline font-bold mb-2">{category.title}</h3>
-                      <p className="text-sm text-on-surface-variant mb-6">{category.description}</p>
+                      <p className={`text-sm mb-6 ${category.mutedTextClass}`}>{category.description}</p>
                       <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+                        <span className={`text-xs font-bold uppercase tracking-widest ${category.mutedTextClass}`}>
                           {category.sessions}
                         </span>
                         <span className="material-symbols-outlined text-[#7DA47D] opacity-0 group-hover:opacity-100 transition-opacity">
@@ -180,7 +186,7 @@ const MentalWellbeing = () => {
                     Journal Notes
                   </label>
                   <textarea
-                    className="w-full h-40 bg-surface-container rounded-lg border-none p-4 text-sm focus:ring-2 focus:ring-[#7DA47D]/20 placeholder:text-outline-variant/60"
+                    className="w-full h-40 bg-surface-container text-[#243b2e] rounded-lg border-none p-4 text-sm focus:ring-2 focus:ring-[#7DA47D]/20 placeholder:text-[#5b6b60]"
                     placeholder="Type your thoughts here..."
                   />
                 </div>
