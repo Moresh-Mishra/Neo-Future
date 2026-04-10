@@ -669,7 +669,7 @@ app.get('/api/workout/today', async (req, res) => {
 
     for (const muscle of todayPlan.muscles) {
       const [exercises] = await mysqlPool.query(
-        `SELECT exercise_id, name, target, difficulty, gif_path, equipment, category, description
+        `SELECT exercise_id, name, target, difficulty, gif_path, equipment, category, description, instruction
          FROM exercises
          WHERE target = ? AND difficulty = ?
          LIMIT 3`,
