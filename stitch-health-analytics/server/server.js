@@ -706,6 +706,180 @@ app.get('/api/workout/today', async (req, res) => {
   }
 });
 
+// ==================== DAILY REFLECTIONS ENDPOINTS ====================
+
+// Submit daily reflection
+app.post('/api/reflections/submit', authMiddleware, async (req, res) => {
+  try {
+    const {
+      user_id,
+      overall_feeling,
+      yesterday_rating,
+      emotions,
+      mood_affect,
+      sleep_quality,
+      sleep_hours,
+      energy_level,
+      completed_tasks,
+      stress_level,
+      felt_lonely,
+      best_part,
+      did_well,
+      took_time_for_self,
+      something_made_smile,
+      today_outlook,
+      emotionally_okay,
+      disturbing_thoughts
+    } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+
+    const conn = await mysqlPool.getConnection();
+
+    try {
+      // Insert or update daily reflection
+      const query = `
+        INSERT INTO daily_reflections (
+          user_id, overall_feeling, yesterday_rating, emotions, mood_affect,
+          sleep_quality, sleep_hours, energy_level, completed_tasks,
+          stress_level, felt_lonely, best_part, did_well,
+          took_time_for_self, something_made_smile, today_outlook,
+          emotionally_okay, disturbing_thoughts, submission_date
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())
+        ON DUPLICATE KEY UPDATE
+          overall_feeling = VALUES(overall_feeling),
+          yesterday_rating = VALUES(yesterday_rating),
+          emotions = VALUES(emotions),
+          mood_affect = VALUES(mood_affect),
+          sleep_quality = VALUES(sleep_quality),
+          sleep_hours = VALUES(sleep_hours),
+          energy_level = VALUES(energy_level),
+          completed_tasks = VALUES(completed_tasks),
+          stress_level = VALUES(stress_level),
+          felt_lonely = VALUES(felt_lonely),
+          best_part = VALUES(best_part),
+          did_well = VALUES(did_well),
+          took_time_for_self = VALUES(took_time_for_self),
+          something_made_smile = VALUES(something_made_smile),
+          today_outlook = VALUES(today_outlook),
+          emotionally_okay = VALUES(emotionally_okay),
+          disturbing_thoughts = VALUES(disturbing_thoughts),
+          updated_at = CURRENT_TIMESTAMP
+      `;
+
+      const values = [
+        user_id,
+        overall_feeling,
+        yesterday_rating,
+        JSON.stringify(emotions),
+        mood_affect,
+        sleep_quality,
+        sleep_hours,
+        energy_level,
+        completed_tasks,
+        stress_level,
+        felt_lonely,
+        best_part,
+        did_well,
+        took_time_for_self,
+        something_made_smile,
+        today_outlook,
+        emotionally_okay,
+        disturbing_thoughts
+      ];
+
+      const [result] = await conn.query(query, values);
+
+      conn.release();
+
+      res.json({
+        success: true,
+        message: 'Daily reflection submitted successfully',
+        reflection_id: result.insertId
+      });
+    } catch (error) {
+      conn.release();
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error submitting reflection:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Check if user has submitted reflection today
+app.get('/api/reflections/has-submitted-today/:userId', authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const conn = await mysqlPool.getConnection();
+
+    try {
+      const query = `
+        SELECT reflection_id FROM daily_reflections
+        WHERE user_id = ? AND submission_date = CURDATE()
+        LIMIT 1
+      `;
+
+      const [rows] = await conn.query(query, [userId]);
+
+      conn.release();
+
+      res.json({
+        hasSubmitted: rows.length > 0,
+        submissionDate: rows.length > 0 ? rows[0].submission_date : null
+      });
+    } catch (error) {
+      conn.release();
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error checking submission status:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get user's daily reflections (history)
+app.get('/api/reflections/:userId', authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const conn = await mysqlPool.getConnection();
+
+    try {
+      const query = `
+        SELECT * FROM daily_reflections
+        WHERE user_id = ?
+        ORDER BY submission_date DESC
+        LIMIT 30
+      `;
+
+      const [rows] = await conn.query(query, [userId]);
+
+      // Parse JSON fields
+      const parsedRows = rows.map(row => ({
+        ...row,
+        emotions: row.emotions ? JSON.parse(row.emotions) : []
+      }));
+
+      conn.release();
+
+      res.json({
+        success: true,
+        reflections: parsedRows
+      });
+    } catch (error) {
+      conn.release();
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error fetching reflections:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({

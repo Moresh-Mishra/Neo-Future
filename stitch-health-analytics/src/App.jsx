@@ -30,7 +30,6 @@ const App = () => {
     '#emwell': 'emwell-landing',
     '#login': 'login',
     '#signup': 'signup',
-    '#daily-reflection': 'daily-reflection',
   };
 
   const screenToHash = {
@@ -43,12 +42,43 @@ const App = () => {
     'emwell-landing': '#emwell',
     login: '#login',
     signup: '#signup',
-    'daily-reflection': '#daily-reflection',
   };
 
   const resolveScreenFromHash = () => hashToScreen[window.location.hash] || 'emwell-landing';
 
   const [currentScreen, setCurrentScreen] = useState(resolveScreenFromHash);
+  const [showDailyReflection, setShowDailyReflection] = useState(false);
+
+  // Check if user is logged in and show daily reflection if needed
+  const checkAuthStatus = () => {
+    const authToken = localStorage.getItem('authToken');
+    const user = localStorage.getItem('user');
+
+    if (authToken && user) {
+      try {
+        // Validate that user object is valid JSON
+        JSON.parse(user);
+        setShowDailyReflection(true);
+      } catch (e) {
+        // Invalid user object, clear storage and hide form
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        setShowDailyReflection(false);
+      }
+    } else {
+      setShowDailyReflection(false);
+    }
+  };
+
+  // Check on component mount
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  // Check whenever screen changes
+  useEffect(() => {
+    checkAuthStatus();
+  }, [currentScreen]);
 
   useEffect(() => {
     // Keep UI in sync with the URL hash so anchor links switch screens.
@@ -97,16 +127,19 @@ const App = () => {
         return <LoginPage onNavigate={navigateTo} />;
       case 'signup':
         return <SignUpPage onNavigate={navigateTo} />;
-      case 'daily-reflection':
-        return <DailyReflection onNavigate={navigateTo} />;
       default:
         return <UserDashboard />;
     }
   };
 
+  const handleDailyReflectionClose = () => {
+    setShowDailyReflection(false);
+  };
+
   return (
     <div className="app">
       {renderScreen()}
+      {showDailyReflection && <DailyReflection onNavigate={navigateTo} onClose={handleDailyReflectionClose} />}
     </div>
   );
 };

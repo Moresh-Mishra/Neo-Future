@@ -1,11 +1,15 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 
 const TOTAL_STEPS = 8;
+const API_URL = 'http://localhost:5000';
 
-const DailyReflection = ({ onNavigate }) => {
+const DailyReflection = ({ onNavigate, onClose }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [hasSubmittedToday, setHasSubmittedToday] = useState(false);
   const [formData, setFormData] = useState({
     overallFeeling: '',
     yesterdayRating: 5,
@@ -25,6 +29,45 @@ const DailyReflection = ({ onNavigate }) => {
     emotionallyOkay: '',
     disturbingThoughts: '',
   });
+
+  // Check if user is logged in and if they've already submitted today
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    const authToken = localStorage.getItem('authToken');
+
+    if (!userStr || !authToken) {
+      onClose?.();
+      return;
+    }
+
+    const userData = JSON.parse(userStr);
+    setUser(userData);
+
+    // Check if user has already submitted today
+    checkIfSubmittedToday(userData.user_id, authToken);
+  }, [onClose]);
+
+  const checkIfSubmittedToday = async (userId, token) => {
+    try {
+      const response = await fetch(`${API_URL}/api/reflections/has-submitted-today/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.hasSubmitted) {
+          setHasSubmittedToday(true);
+          onClose?.();
+        }
+      }
+    } catch (err) {
+      console.error('Error checking submission status:', err);
+    }
+  };
 
   const progress = useMemo(() => Math.round((currentStep / TOTAL_STEPS) * 100), [currentStep]);
 
@@ -104,7 +147,7 @@ const DailyReflection = ({ onNavigate }) => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationError = validateStep();
     if (validationError) {
@@ -113,7 +156,51 @@ const DailyReflection = ({ onNavigate }) => {
     }
 
     setError('');
-    setSubmitted(true);
+    setIsLoading(true);
+
+    try {
+      const authToken = localStorage.getItem('authToken');
+      
+      const response = await fetch(`${API_URL}/api/reflections/submit`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: user.user_id,
+          overall_feeling: formData.overallFeeling,
+          yesterday_rating: formData.yesterdayRating,
+          emotions: formData.emotions,
+          mood_affect: formData.moodAffect,
+          sleep_quality: formData.sleepQuality,
+          sleep_hours: formData.sleepHours,
+          energy_level: formData.energyLevel,
+          completed_tasks: formData.completedTasks,
+          stress_level: formData.stressLevel,
+          felt_lonely: formData.feltLonely,
+          best_part: formData.bestPart,
+          did_well: formData.didWell,
+          took_time_for_self: formData.tookTimeForSelf,
+          something_made_smile: formData.somethingMadeSmile,
+          today_outlook: formData.todayOutlook,
+          emotionally_okay: formData.emotionallyOkay,
+          disturbing_thoughts: formData.disturbingThoughts
+        })
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+      } else {
+        const data = await response.json();
+        setError(data.error || 'Failed to submit reflection');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+      console.error('Error submitting reflection:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const sectionTitle = {
@@ -369,54 +456,26 @@ const DailyReflection = ({ onNavigate }) => {
   if (submitted) {
     return (
       <div className="reflection-page">
-        <div className="reflection-card">
-          <h1>Daily Reflection - Yesterday Check-In</h1>
-          <p className="subtitle">Thank you for sharing. We're here to support your well-being.</p>
-
-          <div className="summary-card">
-            <h2>Your Reflection Summary</h2>
-            <p className="summary-intro">You can expand each section to review your responses 💚</p>
-
-            <div className="summary-grid">
-              {summarySections.map((section, index) => (
-                <details className="summary-section" key={section.title} open={index === 0}>
-                  <summary>{section.title}</summary>
-                  <div className="summary-list">
-                    {section.items.map((item) => {
-                      const value = renderSummaryValue(item.value);
-                      return (
-                        <div className="summary-row" key={item.label}>
-                          <p className="summary-label">{item.label}</p>
-                          {Array.isArray(value) ? (
-                            <div className="summary-chips">
-                              {value.map((chip) => (
-                                <span className="summary-chip" key={chip}>{chip}</span>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="summary-value">{value}</p>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </details>
-              ))}
-            </div>
+        <div className="reflection-card thank-you-card">
+          <div className="thank-you-content">
+            <h1>Thank You! 💚</h1>
+            <p className="thank-you-message">
+              Thank you for your precious time. Your insights will help us provide you with more personalized support.
+            </p>
+            <p className="thank-you-subtitle">
+              We're committed to supporting your wellness journey every step of the way.
+            </p>
           </div>
 
-          <div className="button-row summary-actions">
-            <button
-              className="btn"
+          <div className="button-row">
+            <button 
+              className="btn btn-primary" 
               onClick={() => {
-                setSubmitted(false);
-                setCurrentStep(1);
+                onClose?.();
+                onNavigate?.('dashboard');
               }}
             >
-              Edit Responses
-            </button>
-            <button className="btn btn-primary" onClick={() => onNavigate?.('dashboard')}>
-              Continue to Dashboard
+              Close
             </button>
           </div>
         </div>
@@ -457,8 +516,8 @@ const DailyReflection = ({ onNavigate }) => {
               Next
             </button>
           ) : (
-            <button type="submit" className="btn btn-primary">
-              Submit Reflection
+            <button type="submit" className="btn btn-primary" disabled={isLoading}>
+              {isLoading ? 'Submitting...' : 'Submit'}
             </button>
           )}
         </div>
@@ -471,12 +530,18 @@ const DailyReflection = ({ onNavigate }) => {
 
 const styles = `
   .reflection-page {
-    min-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    background: linear-gradient(145deg, rgba(196, 237, 194, 0.35), rgba(248, 250, 243, 1));
+    background: rgba(45, 52, 44, 0.4);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
   }
 
   .reflection-card {
@@ -491,20 +556,20 @@ const styles = `
   }
 
   h1 {
-    color: var(--color-on-surface);
+    color: #1a1a1a;
     font-size: clamp(1.4rem, 3.4vw, 2rem);
     margin-bottom: 0.35rem;
   }
 
   .subtitle {
-    color: var(--color-on-surface-variant);
+    color: #4a4a4a;
     margin-bottom: 1rem;
   }
 
   .progress-meta {
     display: flex;
     justify-content: space-between;
-    color: var(--color-on-surface-variant);
+    color: #4a4a4a;
     font-weight: 600;
     margin-bottom: 0.4rem;
     font-size: 0.9rem;
@@ -532,7 +597,7 @@ const styles = `
   .step-panel h2 {
     font-size: 1.15rem;
     margin-bottom: 1rem;
-    color: var(--color-primary);
+    color: #436745;
   }
 
   .field {
@@ -543,7 +608,7 @@ const styles = `
     display: block;
     margin-bottom: 0.55rem;
     font-weight: 600;
-    color: var(--color-on-surface);
+    color: #1a1a1a;
   }
 
   .option-grid {
@@ -558,7 +623,7 @@ const styles = `
     padding: 0.6rem 0.75rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1.2rem;
     cursor: pointer;
     transition: all 180ms ease;
     background: #fbfdf8;
@@ -587,7 +652,7 @@ const styles = `
     border-radius: 12px;
     padding: 0.75rem 0.9rem;
     font-size: 0.98rem;
-    color: var(--color-on-surface);
+    color: #1a1a1a;
     background: #fff;
   }
 
@@ -657,13 +722,13 @@ const styles = `
 
   .summary-card h2 {
     margin-bottom: 0.3rem;
-    color: var(--color-primary);
+    color: #436745;
     font-size: 1.1rem;
   }
 
   .summary-intro {
     font-size: 0.92rem;
-    color: var(--color-on-surface-variant);
+    color: #4a4a4a;
     margin-bottom: 0.85rem;
   }
 
@@ -726,14 +791,14 @@ const styles = `
 
   .summary-label {
     font-size: 0.82rem;
-    color: #5a6857;
+    color: #1a1a1a;
     margin-bottom: 0.2rem;
     font-weight: 600;
   }
 
   .summary-value {
     font-size: 0.96rem;
-    color: #2d342c;
+    color: #1a1a1a;
     line-height: 1.45;
     white-space: pre-wrap;
     word-break: break-word;
@@ -757,6 +822,50 @@ const styles = `
 
   .summary-actions {
     margin-top: 0.4rem;
+  }
+
+  .thank-you-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    text-align: center;
+  }
+
+  .thank-you-content {
+    margin-bottom: 2rem;
+    animation: slideUp 500ms ease;
+  }
+
+  .thank-you-content h1 {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+    color: #436745;
+  }
+
+  .thank-you-message {
+    font-size: 1.1rem;
+    color: #1a1a1a;
+    margin-bottom: 0.8rem;
+    line-height: 1.6;
+  }
+
+  .thank-you-subtitle {
+    font-size: 0.95rem;
+    color: #4a4a4a;
+    line-height: 1.5;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @keyframes slideFade {

@@ -38,7 +38,7 @@ const LoginPage = ({ onNavigate }) => {
           localStorage.setItem('rememberMe', 'true');
         }
 
-        onNavigate?.('daily-reflection');
+        onNavigate?.('dashboard');
       } else {
         setError(data.error || 'Login failed');
       }
