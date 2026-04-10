@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
+const path = require('path');
 const { hashPassword, comparePassword, generateToken, authMiddleware } = require('./auth');
 
 dotenv.config();
@@ -12,6 +13,10 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serve exercise GIFs from the Exercise recommendation project folder
+const exerciseGifsPath = path.join(__dirname, '..', '..', 'Exercise recomendation project', 'exercise_gifs');
+app.use('/api/exercise_gifs', express.static(exerciseGifsPath));
 
 // MySQL connection pool
 let mysqlPool;
@@ -114,7 +119,8 @@ app.get('/api/exercises', async (req, res) => {
         description: ex.description,
         instruction: ex.instruction,
         secondary_muscles: ex.secondary_muscles,
-        gif_path: ex.gif_path
+        gif_path: ex.gif_path,
+        gifUrl: ex.gif_path ? `/api/exercise_gifs/${path.basename(ex.gif_path)}` : null
       }))
     });
   } catch (error) {
@@ -526,6 +532,176 @@ app.get('/api/user/history', async (req, res) => {
     res.json({ success: true, history: results });
   } catch (error) {
     console.error('Error fetching user history:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 9. Get today's workout based on day and difficulty level
+app.get('/api/workout/today', async (req, res) => {
+  try {
+    const { difficulty = 'beginner' } = req.query;
+
+    // Define weekly workout plans - muscle names must match database 'target' column
+    const weeklyPlans = {
+      beginner: {
+        Monday: {
+          name: "Chest, Shoulders & Triceps",
+          muscles: ['pectorals', 'delts', 'triceps']
+        },
+        Tuesday: {
+          name: "Back, Lats & Biceps",
+          muscles: ['lats', 'upper back', 'biceps']
+        },
+        Wednesday: {
+          name: "Legs (Quads, Hamstrings, Glutes)",
+          muscles: ['quads', 'hamstrings', 'glutes']
+        },
+        Thursday: {
+          name: "Core & Leg Accessory",
+          muscles: ['abs', 'hamstrings']
+        },
+        Friday: {
+          name: "Glutes & Posterior Chain",
+          muscles: ['glutes', 'lats']
+        },
+        Saturday: {
+          name: "Full Body Circuits",
+          muscles: ['pectorals', 'lats', 'quads', 'glutes']
+        },
+        Sunday: {
+          name: "Rest / Light Stretching",
+          muscles: []
+        }
+      },
+      intermediate: {
+        Monday: {
+          name: "Chest, Shoulders & Triceps",
+          muscles: ['pectorals', 'delts', 'triceps']
+        },
+        Tuesday: {
+          name: "Back & Biceps",
+          muscles: ['lats', 'upper back', 'biceps']
+        },
+        Wednesday: {
+          name: "Quads & Hamstrings",
+          muscles: ['quads', 'hamstrings']
+        },
+        Thursday: {
+          name: "Glutes & Core",
+          muscles: ['glutes', 'abs']
+        },
+        Friday: {
+          name: "Shoulders & Accessory",
+          muscles: ['delts', 'triceps']
+        },
+        Saturday: {
+          name: "Upper Body Power",
+          muscles: ['pectorals', 'lats', 'delts', 'triceps', 'biceps']
+        },
+        Sunday: {
+          name: "Lower Body Power",
+          muscles: ['quads', 'hamstrings', 'glutes']
+        }
+      },
+      expert: {
+        Monday: {
+          name: "Chest, Shoulders & Triceps",
+          muscles: ['pectorals', 'delts', 'triceps']
+        },
+        Tuesday: {
+          name: "Back & Biceps",
+          muscles: ['lats', 'upper back', 'biceps']
+        },
+        Wednesday: {
+          name: "Quads & Hamstrings",
+          muscles: ['quads', 'hamstrings']
+        },
+        Thursday: {
+          name: "Glutes & Core",
+          muscles: ['glutes', 'abs']
+        },
+        Friday: {
+          name: "Upper Back & Serratus",
+          muscles: ['upper back', 'serratus anterior']
+        },
+        Saturday: {
+          name: "Upper Body Power",
+          muscles: ['pectorals', 'lats', 'delts', 'triceps', 'biceps']
+        },
+        Sunday: {
+          name: "Lower Body Power",
+          muscles: ['quads', 'hamstrings', 'glutes']
+        }
+      }
+    };
+
+    // Get today's day
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const today = days[new Date().getDay()];
+
+    // Get plan for today and difficulty level
+    const plan = weeklyPlans[difficulty] || weeklyPlans['beginner'];
+    const todayPlan = plan[today];
+
+    if (!todayPlan) {
+      return res.status(400).json({ success: false, error: `No plan found for ${today}` });
+    }
+
+    // If rest day, return special response
+    if (todayPlan.muscles.length === 0) {
+      return res.json({
+        success: true,
+        day: today,
+        difficulty,
+        dayName: todayPlan.name,
+        muscles: [],
+        exercises: [],
+        isRestDay: true,
+        totalDuration: '0 mins',
+        totalCalories: 0
+      });
+    }
+
+    // Fetch exercises for all muscles in today's plan
+    let allExercises = [];
+    let totalDuration = 0;
+    let totalCalories = 0;
+
+    for (const muscle of todayPlan.muscles) {
+      const [exercises] = await mysqlPool.query(
+        `SELECT exercise_id, name, target, difficulty, gif_path, equipment, category, description
+         FROM exercises
+         WHERE target = ? AND difficulty = ?
+         LIMIT 3`,
+        [muscle, difficulty]
+      );
+
+      allExercises = allExercises.concat(exercises.map(ex => ({
+        ...ex,
+        muscleGroup: muscle,
+        duration: `${Math.floor(Math.random() * 10) + 8} mins`,
+        sets: `${Math.floor(Math.random() * 3) + 2} Sets / ${Math.floor(Math.random() * 8) + 8} Reps`,
+        caloriesBurn: Math.floor(Math.random() * 50) + 30,
+        gifUrl: ex.gif_path ? `/api/exercise_gifs/${path.basename(ex.gif_path)}` : 'https://via.placeholder.com/200x200?text=No+GIF'
+      })));
+
+      totalDuration += exercises.length * (Math.floor(Math.random() * 10) + 8);
+      totalCalories += exercises.length * (Math.floor(Math.random() * 50) + 30);
+    }
+
+    res.json({
+      success: true,
+      day: today,
+      difficulty,
+      dayName: todayPlan.name,
+      muscles: todayPlan.muscles,
+      exercises: allExercises,
+      isRestDay: false,
+      totalDuration: `${totalDuration} mins`,
+      totalCalories: totalCalories
+    });
+  } catch (error) {
+    console.error('Error fetching today\'s workout:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

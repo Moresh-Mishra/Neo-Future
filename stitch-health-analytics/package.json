@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Health Analytics & Insights - React.js application built from Stitch designs",
   "private": true,
+  "proxy": "http://localhost:5000",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",

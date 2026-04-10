@@ -388,9 +388,12 @@ const ExerciseRecommender = ({
             {currentExercise.gif_path && (
               <div className="hidden sm:block h-24 w-24 overflow-hidden rounded-lg">
                 <img
-                  src={currentExercise.gif_path}
+                  src={`/api/exercise_gifs/${currentExercise.gif_path.split('/').pop()}`}
                   alt={currentExercise.name}
                   className="h-full w-full object-cover"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/100?text=Exercise';
+                  }}
                 />
               </div>
             )}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TopNavBar from './TopNavBar';
 import Footer from './Footer';
 import ExerciseRecommender from './ExerciseRecommender';
@@ -9,6 +9,76 @@ const FitnessSanctuary = () => {
   const [enableRLRecommendation, setEnableRLRecommendation] = useState(false);
   const [selectedMuscles, setSelectedMuscles] = useState([]);
   const [fitnessLevel, setFitnessLevel] = useState('beginner');
+  const [todayWorkout, setTodayWorkout] = useState({
+    day: 'Monday',
+    dayName: 'Loading...',
+    muscles: [],
+    exercises: [],
+    isRestDay: false,
+    totalDuration: '0 mins',
+    totalCalories: 0,
+    difficulty: 'beginner'
+  });
+  const [loadingTodayWorkout, setLoadingTodayWorkout] = useState(true);
+
+  // Fetch today's workout plan
+  useEffect(() => {
+    const fetchTodayWorkout = async () => {
+      setLoadingTodayWorkout(true);
+      try {
+        const difficultyMap = {
+          'Gentle': 'beginner',
+          'Steady': 'intermediate',
+          'Vigorous': 'expert'
+        };
+        const difficulty = difficultyMap[selectedIntensity] || 'beginner';
+        
+        console.log('Fetching workout for difficulty:', difficulty);
+        const response = await fetch(`http://localhost:5000/api/workout/today?difficulty=${difficulty}`);
+        console.log('Response status:', response.status);
+        const data = await response.json();
+        console.log('API Response:', data);
+
+        if (data.success) {
+          // Add random timing if not present
+          if (data.totalDuration === 0 || !data.totalDuration) {
+            data.totalDuration = `${Math.floor(Math.random() * 30) + 30} mins`;
+            data.totalCalories = Math.floor(Math.random() * 200) + 150;
+          }
+          setTodayWorkout(data);
+        } else {
+          // Fallback data if API fails
+          setTodayWorkout({
+            day: 'Monday',
+            dayName: 'Upper Body Focus',
+            muscles: ['pectorals', 'delts', 'triceps'],
+            exercises: [],
+            isRestDay: false,
+            totalDuration: `${Math.floor(Math.random() * 30) + 30} mins`,
+            totalCalories: Math.floor(Math.random() * 200) + 150,
+            difficulty: 'beginner'
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching today\'s workout:', error);
+        // Fallback data if fetch fails
+        setTodayWorkout({
+          day: 'Monday',
+          dayName: 'Upper Body Focus',
+          muscles: ['pectorals', 'delts', 'triceps'],
+          exercises: [],
+          isRestDay: false,
+          totalDuration: `${Math.floor(Math.random() * 30) + 30} mins`,
+          totalCalories: Math.floor(Math.random() * 200) + 150,
+          difficulty: 'beginner'
+        });
+      } finally {
+        setLoadingTodayWorkout(false);
+      }
+    };
+
+    fetchTodayWorkout();
+  }, [selectedIntensity]);
 
   const muscleGroups = [
     { name: 'Legs', icon: 'fitness_center', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAZ_wGH_iiOxu-viBV9qS5_TFaFMZSvpCEQHxDc7rQNt6NMj1Y2F4tq4Az8o3F7VFKor-bK9JJXlNt43oV9fuuf2dhPVZSrJH1WTeXE4a_rIf-irWrB4pZoagJkHFNWeoEDnrmhuSnToY0C3MtpIkQYGMSASLhOoOrPse9K-OHnTHKCRVfRA37IaF26OBUXUrRfyNYkyEfOpV9vB_l-KHbmV_2YgYUzxLv1kF6SQFRgTOUAY-FWTcIPZPjSHr0zGiRdy8F_8HoCifE', selected: true },
@@ -27,7 +97,7 @@ const FitnessSanctuary = () => {
 
   // Map muscle names to exercise database targets
   const muscleToTargetMap = {
-    'Legs': 'quadriceps',
+    'Legs': 'quads',
     'Chest': 'pectorals',
     'Core': 'abs',
     'Back': 'lats',
@@ -106,17 +176,204 @@ const FitnessSanctuary = () => {
             </p>
           </section>
 
-          {/* Step 1: Select Your Focus */}
-          <section className="space-y-5">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant">
-                  Step 01
-                </span>
-                <h3 className="text-2xl font-semibold text-on-surface">Select Your Focus</h3>
-              </div>
-              <p className="text-xs text-on-surface-variant">Choose one or more areas to target</p>
+          {/* Step 1: Daily Workout Plan (Today's Generalized Schedule) */}
+          <section className="space-y-6">
+            <div>
+              <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant">
+                Section 01
+              </span>
+              <h2 className="text-3xl font-bold text-on-surface">Generalized Workout Plans</h2>
+              <p className="mt-1 text-sm text-on-surface-variant">
+                Auto-generated daily workouts optimized for your fitness level
+              </p>
             </div>
+
+            {/* Difficulty Level Selector - Dropdown */}
+            <div className="flex items-end gap-4">
+              <div className="flex-1">
+                <label className="mb-2 block text-sm font-semibold text-on-surface">
+                  Select Difficulty Level
+                </label>
+                <select
+                  value={selectedIntensity}
+                  onChange={(e) => setSelectedIntensity(e.target.value)}
+                  className="w-full rounded-lg border border-outline-variant/40 bg-surface-container-low px-4 py-3 text-sm font-medium text-on-surface transition-all hover:border-primary/50 focus:border-primary focus:outline-none"
+                >
+                  <option value="Gentle">Gentle (Beginner)</option>
+                  <option value="Steady">Steady (Intermediate)</option>
+                  <option value="Vigorous">Vigorous (Advanced)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Daily Workout Plan - Generalized Weekly Schedule */}
+            {loadingTodayWorkout && !todayWorkout.day ? (
+              <div className="flex items-center justify-center rounded-2xl border border-outline-variant/25 bg-surface-container-low p-8">
+                <p className="text-sm text-on-surface-variant">Loading today's workout...</p>
+              </div>
+            ) : (
+              <div className="space-y-6 rounded-2xl border border-outline-variant/25 bg-surface-container-low p-4 md:p-6">
+                {/* Header with Day Info */}
+                <div className="space-y-3 border-b border-outline-variant/20 pb-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-[12px] font-semibold uppercase tracking-wider text-primary">
+                        {todayWorkout.day}
+                      </p>
+                      <h4 className="mt-1 text-xl font-bold text-on-surface">
+                        {todayWorkout.dayName}
+                      </h4>
+                      <p className="mt-1 text-sm text-on-surface-variant">
+                        {todayWorkout.isRestDay
+                          ? 'Rest day - Focus on recovery and light stretching'
+                          : `${todayWorkout.muscles.length} muscle groups • ${todayWorkout.difficulty} level`}
+                      </p>
+                    </div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-container">
+                      <span className="material-symbols-outlined text-base text-primary">
+                        {todayWorkout.isRestDay ? 'bedtime' : 'fitness_center'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Statistics */}
+                  {!todayWorkout.isRestDay && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-lg bg-primary-container/40 px-3 py-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-on-surface-variant">
+                          Estimated Time
+                        </p>
+                        <p className="mt-1 text-sm font-bold text-primary">{todayWorkout.totalDuration}</p>
+                      </div>
+                      <div className="rounded-lg bg-secondary-container/40 px-3 py-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-on-surface-variant">
+                          Calories Burn
+                        </p>
+                        <p className="mt-1 text-sm font-bold text-secondary">~{todayWorkout.totalCalories} kcal</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Rest Day Message */}
+                {todayWorkout.isRestDay ? (
+                  <div className="flex flex-col items-center gap-3 py-8 text-center">
+                    <span className="material-symbols-outlined text-5xl text-primary-container">spa</span>
+                    <div>
+                      <p className="text-sm font-semibold text-on-surface">
+                        It's time to recover and rejuvenate
+                      </p>
+                      <p className="mt-1 text-xs text-on-surface-variant">
+                        Rest days are essential for muscle recovery and mental renewal. Enjoy light stretching or meditation.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Exercises by Muscle Group */}
+                    <div className="space-y-5">
+                      {todayWorkout.muscles && todayWorkout.muscles.map((muscle, idx) => {
+                        const muscleExercises = todayWorkout.exercises.filter(
+                          ex => ex.muscleGroup === muscle
+                        );
+
+                        return (
+                          <div key={idx} className="space-y-3">
+                            {/* Muscle Group Subheading */}
+                            <div className="flex items-center gap-2 px-1">
+                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20">
+                                <span className="text-xs font-bold text-primary">✓</span>
+                              </div>
+                              <h5 className="text-sm font-bold uppercase tracking-wider text-on-surface">
+                                {muscle}
+                              </h5>
+                              <span className="text-[11px] font-semibold text-on-surface-variant">
+                                {muscleExercises.length} exercise{muscleExercises.length !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+
+                            {/* Exercise Cards */}
+                            <div className="space-y-2 pl-1">
+                              {muscleExercises.map((exercise, exIdx) => (
+                                <div
+                                  key={exIdx}
+                                  className="group flex items-center gap-3 rounded-lg border border-outline-variant/20 bg-surface-container-lowest p-3 transition-all duration-300 hover:border-primary/40 hover:shadow-sm"
+                                >
+                                  {/* Exercise GIF/Image */}
+                                  <div className="hidden h-12 w-12 shrink-0 overflow-hidden rounded-md sm:block">
+                                    <img
+                                      alt={exercise.name}
+                                      className="h-full w-full object-cover"
+                                      src={exercise.gifUrl}
+                                      onError={(e) => {
+                                        e.target.src = 'https://via.placeholder.com/100?text=Exercise';
+                                      }}
+                                    />
+                                  </div>
+
+                                  {/* Exercise Details */}
+                                  <div className="flex-1 min-w-0">
+                                    <h6 className="text-sm font-semibold text-on-surface truncate">
+                                      {exercise.name}
+                                    </h6>
+                                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                                      <span className="flex items-center text-[10px] text-on-surface-variant">
+                                        <span className="material-symbols-outlined mr-0.5 text-xs">timer</span>
+                                        {exercise.duration}
+                                      </span>
+                                      <span className="flex items-center text-[10px] text-on-surface-variant">
+                                        <span className="material-symbols-outlined mr-0.5 text-xs">repeat</span>
+                                        {exercise.sets}
+                                      </span>
+                                      <span className="flex items-center text-[10px] text-on-surface-variant">
+                                        <span className="material-symbols-outlined mr-0.5 text-xs">local_fire_department</span>
+                                        ~{exercise.caloriesBurn} kcal
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Action Button */}
+                                  <button className="shrink-0 rounded-full p-2 text-primary transition-colors hover:bg-primary-container/60">
+                                    <span className="material-symbols-outlined text-base">play_circle</span>
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Start Workout Button */}
+                    <div className="flex flex-col gap-3 border-t border-outline-variant/20 pt-4 sm:flex-row sm:items-center sm:justify-end">
+                      <button className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-on-primary transition-all hover:bg-primary-dim active:scale-95 sm:w-auto">
+                        Start Workout
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </section>
+
+          {/* Step 2: Create Your Own Workout Plan */}
+          <section className="space-y-8">
+            <div>
+              <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant">
+                Section 02
+              </span>
+              <h2 className="text-3xl font-bold text-on-surface">Create Your Own Workout Plan</h2>
+              <p className="mt-1 text-sm text-on-surface-variant">
+                Customize your workout by selecting focus areas and intensity level
+              </p>
+            </div>
+
+            {/* Step 2A: Select Your Focus */}
+            <div className="space-y-5">
+              <div>
+                <h3 className="text-xl font-semibold text-on-surface">Step 1: Select Focus Areas</h3>
+                <p className="mt-1 text-xs text-on-surface-variant">Choose one or more muscle groups to target</p>
+              </div>
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
               {muscleGroups.map((muscle) => {
@@ -165,16 +422,14 @@ const FitnessSanctuary = () => {
                 );
               })}
             </div>
-          </section>
-
-          {/* Step 2: Choose Intensity */}
-          <section className="space-y-5">
-            <div>
-              <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant">
-                Step 02
-              </span>
-              <h3 className="text-2xl font-semibold text-on-surface">Choose Intensity</h3>
             </div>
+
+            {/* Step 2B: Choose Intensity */}
+            <div className="space-y-5">
+              <div>
+                <h3 className="text-xl font-semibold text-on-surface">Step 2: Choose Intensity Level</h3>
+                <p className="mt-1 text-xs text-on-surface-variant">Select your workout difficulty or energy level</p>
+              </div>
 
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {intensityLevels.map((level) => (
@@ -211,102 +466,50 @@ const FitnessSanctuary = () => {
                 </button>
               ))}
             </div>
+            </div>
           </section>
 
-          {/* Step 3: Exercise Selection - RL Integration */}
-          <section className="space-y-5">
-            <div className="flex items-end justify-between">
-              <div>
-                <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant">
-                  Step 03
-                </span>
-                <h3 className="text-2xl font-semibold text-on-surface">Exercise Selection</h3>
-                <p className="mt-1 text-xs text-on-surface-variant">
-                  Choose your workout mode
-                </p>
-              </div>
+          {/* Section 03: AI-Powered Personalization */}
+          <section className="space-y-6">
+            <div>
+              <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant">
+                Section 03
+              </span>
+              <h2 className="text-3xl font-bold text-on-surface">Advanced Personalization</h2>
+              <p className="mt-1 text-sm text-on-surface-variant">
+                Get AI-powered recommendations using reinforcement learning
+              </p>
             </div>
 
-            {/* Mode Selection */}
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              {/* Classic Mode */}
-              <button
-                onClick={() => setEnableRLRecommendation(false)}
-                className={`rounded-2xl border p-4 text-left transition-all duration-300 ${
-                  !enableRLRecommendation
-                    ? 'border-primary bg-primary-container/55'
-                    : 'border-outline-variant/40 bg-surface-container-low hover:border-primary/45'
-                }`}
-              >
-                <div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-full ${!enableRLRecommendation ? 'bg-primary' : 'bg-surface-container-high'}`}>
-                  <span
-                    className="material-symbols-outlined text-base"
-                    style={{ color: !enableRLRecommendation ? '#e9ffe5' : '' }}
-                  >
-                    fitness_center
-                  </span>
+            <div className="space-y-4 rounded-2xl border border-outline-variant/25 bg-surface-container-low p-4 md:p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h4 className="text-base font-semibold text-on-surface">
+                    Want Personalized Recommendations?
+                  </h4>
+                  <p className="mt-1 text-xs text-on-surface-variant">
+                    Use AI-powered reinforcement learning for a customized workout tailored to your preferences
+                  </p>
                 </div>
-                <h4 className="text-base font-semibold text-on-surface">Classic Mode</h4>
-                <p className="mb-3 text-xs text-on-surface-variant">
-                  Browse exercises manually for {selectedFocus}
-                </p>
-                <span className="inline-flex items-center text-[11px] font-semibold text-on-surface-variant">
-                  {!enableRLRecommendation ? (
-                    <>
-                      Selected <span className="material-symbols-outlined ml-1 text-[14px]">check_circle</span>
-                    </>
-                  ) : (
-                    <>
-                      Choose <span className="material-symbols-outlined ml-1 text-[14px]">arrow_forward</span>
-                    </>
-                  )}
-                </span>
-              </button>
-
-              {/* AI-Powered RL Mode */}
+              </div>
               <button
                 onClick={handleStartRLRecommendation}
-                className={`rounded-2xl border p-4 text-left transition-all duration-300 ${
-                  enableRLRecommendation
-                    ? 'border-primary bg-primary-container/55'
-                    : 'border-outline-variant/40 bg-surface-container-low hover:border-primary/45'
-                }`}
+                className="w-full rounded-full border-2 border-primary bg-primary-container/40 px-4 py-3 text-sm font-semibold text-primary transition-all hover:bg-primary-container/60 sm:w-auto"
               >
-                <div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-full ${enableRLRecommendation ? 'bg-primary' : 'bg-surface-container-high'}`}>
-                  <span
-                    className="material-symbols-outlined text-base"
-                    style={{ color: enableRLRecommendation ? '#e9ffe5' : '' }}
-                  >
-                    auto_awesome
-                  </span>
-                </div>
-                <h4 className="text-base font-semibold text-on-surface">AI-Powered RL</h4>
-                <p className="mb-3 text-xs text-on-surface-variant">
-                  Personalized recommendations using Q-Learning
-                </p>
-                <span className="inline-flex items-center text-[11px] font-semibold text-on-surface-variant">
-                  {enableRLRecommendation ? (
-                    <>
-                      Selected <span className="material-symbols-outlined ml-1 text-[14px]">check_circle</span>
-                    </>
-                  ) : (
-                    <>
-                      Choose <span className="material-symbols-outlined ml-1 text-[14px]">arrow_forward</span>
-                    </>
-                  )}
-                </span>
+                <span className="material-symbols-outlined mr-2 text-base align-middle">auto_awesome</span>
+                Enable AI Recommendations
               </button>
             </div>
 
-            {/* RL Recommendation Component */}
+            {/* RL Recommendation Component - Shows when AI mode is enabled */}
             {enableRLRecommendation && (
-              <div className="rounded-2xl border border-primary/30 bg-primary-container/10 p-4">
+              <div className="space-y-4 rounded-2xl border border-primary/30 bg-primary-container/10 p-4 md:p-6">
                 <div className="mb-4 flex items-start gap-3">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary">
                     <span className="material-symbols-outlined text-base text-on-primary">psychology</span>
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-primary">AI Exercise Recommendation</h4>
+                    <h4 className="text-sm font-semibold text-primary">🤖 AI-Powered Workout Recommendation</h4>
                     <p className="text-xs text-on-surface-variant">
                       Your workout will be personalized based on your selections using reinforcement learning.
                       The system learns from your preferences to improve future recommendations.
@@ -319,62 +522,6 @@ const FitnessSanctuary = () => {
                   fitnessLevel={fitnessLevel}
                   onWorkoutComplete={handleWorkoutComplete}
                 />
-              </div>
-            )}
-
-            {/* Classic Exercise List */}
-            {!enableRLRecommendation && (
-              <div className="space-y-3 rounded-2xl border border-outline-variant/25 bg-surface-container-low p-3 md:p-4">
-                {exercises.map((exercise, index) => (
-                  <div
-                    key={index}
-                    className="group flex items-center justify-between rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-3 transition-shadow duration-300 hover:shadow-sm"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="hidden h-10 w-10 overflow-hidden rounded-md sm:block">
-                        <img
-                          alt={exercise.name}
-                          className="h-full w-full object-cover"
-                          src={exercise.image}
-                        />
-                      </div>
-                      <div>
-                        <h5 className="text-sm font-semibold text-on-surface">{exercise.name}</h5>
-                        <div className="mt-1 flex items-center gap-3">
-                          <span className="flex items-center text-[11px] text-on-surface-variant">
-                            <span className="material-symbols-outlined mr-1 text-[12px]">timer</span> {exercise.duration}
-                          </span>
-                          <span className="flex items-center text-[11px] text-on-surface-variant">
-                            <span className="material-symbols-outlined mr-1 text-[12px]">history</span> {exercise.sets}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <button className="rounded-full p-2 text-primary transition-colors hover:bg-primary-container">
-                      <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                    </button>
-                  </div>
-                ))}
-
-                <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="rounded-xl bg-primary-container px-3 py-2">
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-on-primary-container">
-                        Estimated Effort
-                      </p>
-                      <p className="text-sm font-semibold text-primary">27 Min</p>
-                    </div>
-                    <div className="rounded-xl bg-secondary-container px-3 py-2">
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-on-secondary-container">
-                        Calories Burn
-                      </p>
-                      <p className="text-sm font-semibold text-secondary">~180 kcal</p>
-                    </div>
-                  </div>
-                  <button className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-dim sm:w-auto">
-                    Start Routine
-                  </button>
-                </div>
               </div>
             )}
           </section>
