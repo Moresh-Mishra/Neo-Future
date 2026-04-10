@@ -81,9 +81,13 @@ const AICompanion = () => {
   const [error, setError] = useState(null);
   const [avatarReady, setAvatarReady] = useState(false);
   const [avatarError, setAvatarError] = useState('');
+  const [isCameraOn, setIsCameraOn] = useState(false);
+  const [cameraError, setCameraError] = useState('');
   const messagesEndRef = useRef(null);
   const avatarContainerRef = useRef(null);
   const avatarInstanceRef = useRef({ head: null, headtts: null });
+  const cameraStreamRef = useRef(null);
+  const cameraVideoRef = useRef(null);
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -113,6 +117,15 @@ const AICompanion = () => {
   useEffect(() => {
     initializeChat();
     window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (cameraStreamRef.current) {
+        cameraStreamRef.current.getTracks().forEach(track => track.stop());
+        cameraStreamRef.current = null;
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -411,6 +424,43 @@ const AICompanion = () => {
     }, 50);
   };
 
+  const startCamera = async () => {
+    setCameraError('');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError('Camera not supported in this browser.');
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      cameraStreamRef.current = stream;
+      if (cameraVideoRef.current) {
+        cameraVideoRef.current.srcObject = stream;
+      }
+      setIsCameraOn(true);
+    } catch (err) {
+      console.error('Camera access error:', err);
+      setCameraError('Unable to access camera. Check permissions.');
+      setIsCameraOn(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (cameraStreamRef.current) {
+      cameraStreamRef.current.getTracks().forEach(track => track.stop());
+      cameraStreamRef.current = null;
+    }
+    setIsCameraOn(false);
+  };
+
+  const handleCameraToggle = () => {
+    if (isCameraOn) {
+      stopCamera();
+    } else {
+      startCamera();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-surface text-on-surface font-['Manrope'] flex flex-col">
       <TopNavBar activeTab="forums" />
@@ -444,6 +494,17 @@ const AICompanion = () => {
                   </div>
                 )}
               </div>
+              {isCameraOn && (
+                <div className="absolute bottom-3 left-3 h-16 w-16 overflow-hidden rounded-full border border-white/30 bg-surface/40 shadow-lg">
+                  <video
+                    ref={cameraVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
               <div className="absolute -right-2 top-5 flex items-center gap-2 rounded-xl border border-outline-variant/10 bg-surface/70 p-2 backdrop-blur-md botanical-shadow md:top-10 md:-right-4 md:gap-3 md:p-3">
                 <div className={`w-3 h-3 ${isSpeaking ? 'bg-primary animate-pulse' : 'bg-primary'} rounded-full`}></div>
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant md:text-xs">
@@ -565,6 +626,17 @@ const AICompanion = () => {
                   disabled={isLoading || isSpeaking}
                 />
                 <div className="absolute right-2 flex gap-1">
+                  <button
+                    onClick={handleCameraToggle}
+                    className={`p-2 rounded-full transition-colors duration-200 ${
+                      isCameraOn
+                        ? 'bg-primary/20 text-primary'
+                        : 'text-primary-dim hover:bg-primary/10'
+                    }`}
+                    title={isCameraOn ? 'Turn off camera' : 'Turn on camera'}
+                  >
+                    <span className="material-symbols-outlined">videocam</span>
+                  </button>
                   <button 
                     className="p-2 text-primary-dim hover:bg-primary/10 rounded-full transition-colors duration-200"
                     title="Microphone (coming soon)"
@@ -581,6 +653,11 @@ const AICompanion = () => {
                   </button>
                 </div>
               </div>
+              {cameraError && (
+                <div className="mt-2 text-[11px] text-red-200">
+                  {cameraError}
+                </div>
+              )}
 
               {/* Bottom Actions */}
               <div className="flex justify-between items-center mt-3 px-1">
