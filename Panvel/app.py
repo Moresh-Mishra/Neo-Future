@@ -164,6 +164,21 @@ def init_database():
 # JWT Configuration from environment
 JWT_SECRET = os.getenv('JWT_SECRET', 'fallback_jwt_secret_change_this_in_production')
 JWT_EXPIRATION_HOURS = int(os.getenv('JWT_EXPIRATION_HOURS', '24'))
+DEMO_USER_ID = 'demo_user'
+
+
+def build_demo_user():
+    """Return a synthetic user object for offline/demo mode."""
+    now = datetime.datetime.utcnow()
+    return {
+        '_id': DEMO_USER_ID,
+        'name': 'Demo User',
+        'email': 'demo@headtts.com',
+        'username': 'demo',
+        'created_at': now,
+        'last_login': now,
+        'is_active': True,
+    }
 
 def token_required(f):
     """Decorator to require JWT token for protected routes"""
@@ -181,6 +196,10 @@ def token_required(f):
             
             data = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
             current_user_id = data['user_id']
+
+            if current_user_id == DEMO_USER_ID:
+                current_user = build_demo_user()
+                return f(current_user, *args, **kwargs)
             
             if db is None:
                 return jsonify({'success': False, 'message': 'Database not available'}), 500
@@ -394,6 +413,16 @@ def home_page():
         # Verify token
         data = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
         user_id = data['user_id']
+
+        if user_id == DEMO_USER_ID:
+            session['token'] = token
+            session['user'] = {
+                'id': DEMO_USER_ID,
+                'name': 'Demo User',
+                'email': 'demo@headtts.com',
+                'username': 'demo'
+            }
+            return render_template('home.html')
         
         if db is None:
             return redirect(url_for('login_page', source='home'))
@@ -435,6 +464,16 @@ def dashboard():
         # Verify token
         data = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
         user_id = data['user_id']
+
+        if user_id == DEMO_USER_ID:
+            session['token'] = token
+            session['user'] = {
+                'id': DEMO_USER_ID,
+                'name': 'Demo User',
+                'email': 'demo@headtts.com',
+                'username': 'demo'
+            }
+            return render_template('index.html')
         
         if db is None:
             return redirect(url_for('login_page', source='dashboard'))
@@ -592,10 +631,21 @@ def login():
         print(f"Database status in login: db={'None' if db is None else 'Connected'}")  # Debug
         
         if db is None:
+            demo_user = build_demo_user()
+            token = generate_token(DEMO_USER_ID)
             return jsonify({
-                'success': False,
-                'message': 'Database not available. Please try again later.'
-            }), 500
+                'success': True,
+                'message': 'Demo login successful (offline mode).',
+                'token': token,
+                'redirect': '/home',
+                'user': {
+                    'id': DEMO_USER_ID,
+                    'name': demo_user['name'],
+                    'email': demo_user['email'],
+                    'username': demo_user['username'],
+                    'last_login': demo_user['last_login'].isoformat()
+                }
+            }), 200
         
         # Find user in database
         user = db.users.find_one({
@@ -656,6 +706,19 @@ def login():
 def get_profile(current_user):
     """Get user profile (protected route)"""
     try:
+        if current_user.get('_id') == DEMO_USER_ID:
+            return jsonify({
+                'success': True,
+                'user': {
+                    'id': DEMO_USER_ID,
+                    'name': current_user['name'],
+                    'email': current_user['email'],
+                    'username': current_user['username'],
+                    'created_at': current_user['created_at'].isoformat() if current_user.get('created_at') else None,
+                    'last_login': current_user['last_login'].isoformat() if current_user.get('last_login') else None
+                }
+            }), 200
+
         return jsonify({
             'success': True,
             'user': {
@@ -716,6 +779,21 @@ def update_profile(current_user):
         print(f"Profile update attempt for user: {current_user['username']}")  # Debug log
         
         if db is None:
+            if current_user.get('_id') == DEMO_USER_ID:
+                return jsonify({
+                    'success': True,
+                    'message': 'Demo profile updated successfully.',
+                    'user': {
+                        'id': DEMO_USER_ID,
+                        'name': name or current_user['name'],
+                        'email': current_user['email'],
+                        'username': username or current_user['username'],
+                        'created_at': current_user['created_at'].isoformat() if current_user.get('created_at') else None,
+                        'last_login': current_user['last_login'].isoformat() if current_user.get('last_login') else None,
+                        'updated_at': datetime.datetime.utcnow().isoformat()
+                    }
+                }), 200
+
             return jsonify({
                 'success': False,
                 'message': 'Database not available. Please try again later.'

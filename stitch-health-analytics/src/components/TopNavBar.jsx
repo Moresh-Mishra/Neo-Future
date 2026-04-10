@@ -1,12 +1,12 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 const defaultNavLinks = [
-  { name: 'Sanctuary', href: '#sanctuary', id: 'sanctuary' },
-  { name: 'Growth', href: '#growth', id: 'growth' },
-  { name: 'Community', href: '#community', id: 'community' },
+  { name: 'Home', href: '#sanctuary', id: 'sanctuary' },
+  { name: 'Health', href: '#growth', id: 'growth' },
+  { name: 'Avatar', href: '#forums', id: 'forums' },
   { name: 'Fitness', href: '#fitness', id: 'fitness' },
-  { name: 'Forums', href: '#forums', id: 'forums' },
   { name: 'Wellness', href: '#wellness', id: 'wellness' },
+  { name: 'Community', href: '#community', id: 'community' },
 ];
 
 const mobileIcons = {
@@ -72,8 +72,8 @@ const TopNavBar = ({ activeTab = 'sanctuary', links = defaultNavLinks }) => {
               </span>
             </div>
             <div className="leading-tight">
-              <div className="text-xl font-semibold tracking-tight text-[#436745]">Verdant Solace</div>
-              <div className="text-[11px] uppercase tracking-[0.28em] text-[#596158]">The Living Sanctuary</div>
+              <div className="text-xl font-semibold tracking-tight text-[#436745]">EmWell</div>
+              <div className="text-[11px] uppercase tracking-[0.28em] text-[#596158]">Your Friend</div>
             </div>
           </div>
 
