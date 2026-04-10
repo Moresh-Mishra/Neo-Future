@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+:root {
+  /* EmWell Color Palette */
+  --primary: #436745;
+  --primary-dim: #375b3a;
+  --primary-fixed: #c4edc2;
+  --primary-fixed-dim: #b6dfb4;
+  --on-primary: #e9ffe5;
+  --on-primary-container: #365a39;
+  --on-primary-fixed: #244728;
+  --on-primary-fixed-variant: #406442;
+
+  --secondary: #526451;
+  --secondary-container: #d4e8d0;
+  --secondary-fixed: #d4e8d0;
+  --secondary-fixed-dim: #c6dac3;
+  --on-secondary: #eaffe6;
+  --on-secondary-container: #455644;
+  --on-secondary-fixed: #334333;
+  --on-secondary-fixed-variant: #4e604e;
+
+  --tertiary: #5d632f;
+  --tertiary-container: #f8ffbc;
+  --tertiary-fixed: #f8ffbc;
+  --tertiary-fixed-dim: #eaf0af;
+  --on-tertiary: #f8febc;
+  --on-tertiary-container: #5d632f;
+  --on-tertiary-fixed: #4b501f;
+  --on-tertiary-fixed-variant: #676e39;
+
+  --background: #f8faf3;
+  --surface: #f8faf3;
+  --surface-container: #eaf0e5;
+  --surface-container-low: #f1f5ec;
+  --surface-container-lowest: #ffffff;
+  --surface-container-high: #e4eadf;
+  --surface-container-highest: #dde5d9;
+  --surface-variant: #dde5d9;
+  --surface-dim: #d5dcd0;
+  --surface-bright: #f8faf3;
+
+  --on-surface: #2d342c;
+  --on-surface-variant: #596158;
+  --on-background: #2d342c;
+
+  --outline: #757d73;
+  --outline-variant: #acb4a9;
+
+  --error: #a73b21;
+  --error-container: #fd795a;
+  --on-error: #fff7f6;
+  --on-error-container: #6e1400;
+
+  --inverse-surface: #0c0f0b;
+  --inverse-on-surface: #9b9e98;
+  --inverse-primary: #d4ffd2;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Manrope', sans-serif;
+  background-color: var(--background);
+  color: var(--on-surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Custom Classes */
+.botanical-shadow {
+  box-shadow: 0px 20px 40px rgba(45, 52, 44, 0.06);
+}
+
+.primary-gradient {
+  background: linear-gradient(145deg, #436745 0%, #375b3a 100%);
+}
+
+.glass-nav {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.glass-card {
+  background: rgba(248, 250, 243, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Utility Classes */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
