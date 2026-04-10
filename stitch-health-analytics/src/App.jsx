@@ -48,6 +48,7 @@ const App = () => {
 
   const [currentScreen, setCurrentScreen] = useState(resolveScreenFromHash);
   const [showDailyReflection, setShowDailyReflection] = useState(false);
+  const [hasCheckedToday, setHasCheckedToday] = useState(false);
 
   // Check if user is logged in and show daily reflection if needed
   const checkAuthStatus = () => {
@@ -59,6 +60,7 @@ const App = () => {
         // Validate that user object is valid JSON
         JSON.parse(user);
         setShowDailyReflection(true);
+        setHasCheckedToday(true);
       } catch (e) {
         // Invalid user object, clear storage and hide form
         localStorage.removeItem('authToken');
@@ -70,15 +72,10 @@ const App = () => {
     }
   };
 
-  // Check on component mount
+  // Check on component mount ONLY
   useEffect(() => {
     checkAuthStatus();
   }, []);
-
-  // Check whenever screen changes
-  useEffect(() => {
-    checkAuthStatus();
-  }, [currentScreen]);
 
   useEffect(() => {
     // Keep UI in sync with the URL hash so anchor links switch screens.
