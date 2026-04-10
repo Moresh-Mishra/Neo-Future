@@ -9,6 +9,8 @@ const FitnessSanctuary = () => {
   const [enableRLRecommendation, setEnableRLRecommendation] = useState(false);
   const [selectedMuscles, setSelectedMuscles] = useState([]);
   const [fitnessLevel, setFitnessLevel] = useState('beginner');
+  const [selectedExercise, setSelectedExercise] = useState(null);
+  const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [todayWorkout, setTodayWorkout] = useState({
     day: 'Monday',
     dayName: 'Loading...',
@@ -333,8 +335,15 @@ const FitnessSanctuary = () => {
                                   </div>
 
                                   {/* Action Button */}
-                                  <button className="shrink-0 rounded-full p-2 text-primary transition-colors hover:bg-primary-container/60">
-                                    <span className="material-symbols-outlined text-base">play_circle</span>
+                                  <button 
+                                    onClick={() => {
+                                      setSelectedExercise(exercise);
+                                      setShowExerciseModal(true);
+                                    }}
+                                    className="shrink-0 rounded-full p-2 text-primary transition-colors hover:bg-primary-container/60 hover:text-primary-dim"
+                                    title="View instructions"
+                                  >
+                                    <span className="material-symbols-outlined text-base">info</span>
                                   </button>
                                 </div>
                               ))}
@@ -527,6 +536,110 @@ const FitnessSanctuary = () => {
           </section>
         </div>
       </main>
+
+      {/* Exercise Instructions Modal */}
+      {showExerciseModal && selectedExercise && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-surface-container-low shadow-2xl">
+            {/* Modal Header */}
+            <div className="sticky top-0 border-b border-outline-variant/25 bg-surface-container-low p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-on-surface">{selectedExercise.name}</h3>
+                  <p className="mt-2 text-sm text-on-surface-variant">{selectedExercise.muscleGroup}</p>
+                </div>
+                <button
+                  onClick={() => setShowExerciseModal(false)}
+                  className="shrink-0 rounded-full p-2 text-on-surface-variant transition-colors hover:bg-outline-variant/30 hover:text-on-surface"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="space-y-6 p-6">
+              {/* Exercise Image/GIF */}
+              {selectedExercise.gifUrl && (
+                <div className="overflow-hidden rounded-2xl">
+                  <img
+                    src={selectedExercise.gifUrl}
+                    alt={selectedExercise.name}
+                    className="h-64 w-full object-cover"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/400x300?text=Exercise+GIF';
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Exercise Details */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {selectedExercise.duration && (
+                  <div className="rounded-lg bg-primary-container/20 p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-on-surface-variant">
+                      Duration
+                    </p>
+                    <p className="mt-1 font-semibold text-primary">{selectedExercise.duration}</p>
+                  </div>
+                )}
+                {selectedExercise.sets && (
+                  <div className="rounded-lg bg-secondary-container/20 p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-on-surface-variant">
+                      Sets/Reps
+                    </p>
+                    <p className="mt-1 font-semibold text-secondary">{selectedExercise.sets}</p>
+                  </div>
+                )}
+                {selectedExercise.caloriesBurn && (
+                  <div className="rounded-lg bg-error-container/20 p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-on-surface-variant">
+                      Calories
+                    </p>
+                    <p className="mt-1 font-semibold text-error">~{selectedExercise.caloriesBurn} kcal</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Instructions */}
+              {selectedExercise.instruction && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-on-surface">Instructions</h4>
+                  <div className="rounded-lg bg-surface-container-lowest p-4">
+                    {(() => {
+                      try {
+                        const instructions = typeof selectedExercise.instruction === 'string'
+                          ? JSON.parse(selectedExercise.instruction)
+                          : selectedExercise.instruction;
+                        if (Array.isArray(instructions)) {
+                          return (
+                            <ol className="list-decimal list-inside space-y-2 text-sm text-on-surface">
+                              {instructions.map((instr, idx) => (
+                                <li key={idx} className="break-words">{instr}</li>
+                              ))}
+                            </ol>
+                          );
+                        }
+                        return <p className="text-sm text-on-surface">{instructions}</p>;
+                      } catch {
+                        return <p className="text-sm text-on-surface">{selectedExercise.instruction}</p>;
+                      }
+                    })()}
+                  </div>
+                </div>
+              )}
+
+              {/* Close Button */}
+              <button
+                onClick={() => setShowExerciseModal(false)}
+                className="w-full rounded-full bg-primary px-6 py-3 font-semibold text-on-primary transition-all hover:bg-primary-dim active:scale-95"
+              >
+                Got It
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
