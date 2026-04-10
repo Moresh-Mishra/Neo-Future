@@ -15,6 +15,7 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
   const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [userId, setUserId] = useState(null);
   const [completionFeedback, setCompletionFeedback] = useState({});
+  const [expandedMuscles, setExpandedMuscles] = useState({}); // Track which muscles have expanded view
 
   // Initialize user
   useEffect(() => {
@@ -72,6 +73,51 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleViewAll = async (muscle) => {
+    const isExpanded = expandedMuscles[muscle];
+    
+    if (!isExpanded) {
+      // Fetch all exercises when expanding
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/exercises?target=${encodeURIComponent(muscle)}&difficulty=${encodeURIComponent(fitnessLevel)}`
+        );
+        const data = await res.json();
+
+        if (data.success && data.exercises) {
+          setAvailableExercises(prev => ({
+            ...prev,
+            [muscle]: data.exercises // Show all exercises
+          }));
+        }
+      } catch (err) {
+        console.error('Error fetching all exercises:', err);
+      }
+    } else {
+      // Collapse back to top 5
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/exercises?target=${encodeURIComponent(muscle)}&difficulty=${encodeURIComponent(fitnessLevel)}`
+        );
+        const data = await res.json();
+
+        if (data.success && data.exercises) {
+          setAvailableExercises(prev => ({
+            ...prev,
+            [muscle]: data.exercises.slice(0, 5) // Show only top 5
+          }));
+        }
+      } catch (err) {
+        console.error('Error fetching exercises:', err);
+      }
+    }
+
+    setExpandedMuscles(prev => ({
+      ...prev,
+      [muscle]: !isExpanded
+    }));
   };
 
   const handleSelectExercise = (muscle, exercise) => {
@@ -207,9 +253,22 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
               <h4 className="text-base font-semibold capitalize text-on-surface">
                 {muscle}
               </h4>
-              <span className={`text-xs font-semibold ${selectedExercises[muscle]?.length === 2 ? 'text-primary' : 'text-on-surface-variant'}`}>
-                {selectedExercises[muscle]?.length || 0} of 2 selected
-              </span>
+              <div className="flex items-center gap-3">
+                <span className={`text-xs font-semibold ${selectedExercises[muscle]?.length === 2 ? 'text-primary' : 'text-on-surface-variant'}`}>
+                  {selectedExercises[muscle]?.length || 0} of 2 selected
+                </span>
+                <button
+                  onClick={() => toggleViewAll(muscle)}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                    expandedMuscles[muscle]
+                      ? 'bg-primary text-on-primary'
+                      : 'bg-outline-variant/20 text-on-surface-variant hover:bg-outline-variant/30'
+                  }`}
+                  title={expandedMuscles[muscle] ? 'Show recommended only' : 'View all exercises'}
+                >
+                  {expandedMuscles[muscle] ? 'Show 5' : 'View All'}
+                </button>
+              </div>
             </div>
 
             {availableExercises[muscle]?.length > 0 ? (
