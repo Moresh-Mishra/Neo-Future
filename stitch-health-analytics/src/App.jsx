@@ -6,6 +6,9 @@ import {
   Recommendations,
   MentalWellbeing,
   FitnessSanctuary,
+  EmWellLandingPage,
+  LoginPage,
+  SignUpPage,
 } from './components';
 
 // Simple router for demo purposes
@@ -23,6 +26,9 @@ const App = () => {
     '#mental-wellbeing': 'mental-wellbeing',
     '#mental-health': 'mental-wellbeing',
     '#fitness': 'fitness',
+    '#emwell': 'emwell-landing',
+    '#login': 'login',
+    '#signup': 'signup',
   };
 
   const screenToHash = {
@@ -32,9 +38,12 @@ const App = () => {
     recommendations: '#community',
     'mental-wellbeing': '#wellness',
     fitness: '#fitness',
+    'emwell-landing': '#emwell',
+    login: '#login',
+    signup: '#signup',
   };
 
-  const resolveScreenFromHash = () => hashToScreen[window.location.hash] || 'dashboard';
+  const resolveScreenFromHash = () => hashToScreen[window.location.hash] || 'emwell-landing';
 
   const [currentScreen, setCurrentScreen] = useState(resolveScreenFromHash);
 
@@ -45,7 +54,7 @@ const App = () => {
     };
 
     if (!window.location.hash) {
-      window.location.hash = '#sanctuary';
+      window.location.hash = '#emwell';
     }
 
     window.addEventListener('hashchange', handleHashChange);
@@ -57,7 +66,7 @@ const App = () => {
   }, []);
 
   const navigateTo = (screen) => {
-    const targetHash = screenToHash[screen] || '#dashboard';
+    const targetHash = screenToHash[screen] || '#emwell';
     if (window.location.hash === targetHash) {
       setCurrentScreen(screen);
       return;
@@ -79,6 +88,12 @@ const App = () => {
         return <MentalWellbeing />;
       case 'fitness':
         return <FitnessSanctuary />;
+      case 'emwell-landing':
+        return <EmWellLandingPage onNavigate={navigateTo} />;
+      case 'login':
+        return <LoginPage onNavigate={navigateTo} />;
+      case 'signup':
+        return <SignUpPage onNavigate={navigateTo} />;
       default:
         return <UserDashboard />;
     }

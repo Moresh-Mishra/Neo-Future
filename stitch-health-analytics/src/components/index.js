@@ -13,3 +13,8 @@ export { default as AICompanion } from './AICompanion';
 export { default as Recommendations } from './Recommendations';
 export { default as MentalWellbeing } from './MentalWellbeing';
 export { default as FitnessSanctuary } from './FitnessSanctuary';
+
+// EmWell Components
+export { default as EmWellLandingPage } from './EmWellLandingPage';
+export { default as LoginPage } from './LoginPage';
+export { default as SignUpPage } from './SignUpPage';
