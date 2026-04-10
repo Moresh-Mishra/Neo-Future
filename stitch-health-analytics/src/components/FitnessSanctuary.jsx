@@ -83,12 +83,16 @@ const FitnessSanctuary = () => {
   }, [selectedIntensity]);
 
   const muscleGroups = [
-    { name: 'Legs', icon: 'fitness_center', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAZ_wGH_iiOxu-viBV9qS5_TFaFMZSvpCEQHxDc7rQNt6NMj1Y2F4tq4Az8o3F7VFKor-bK9JJXlNt43oV9fuuf2dhPVZSrJH1WTeXE4a_rIf-irWrB4pZoagJkHFNWeoEDnrmhuSnToY0C3MtpIkQYGMSASLhOoOrPse9K-OHnTHKCRVfRA37IaF26OBUXUrRfyNYkyEfOpV9vB_l-KHbmV_2YgYUzxLv1kF6SQFRgTOUAY-FWTcIPZPjSHr0zGiRdy8F_8HoCifE', selected: true },
-    { name: 'Chest', icon: 'pool', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAFNJrHDC30HhXrWj72G3G4Jsb9vtS7fWaPzP3QvVCelXk2hIp5JeszE6ZcJ8soVidJ1IHaQTlQ1a0X-2HBmAc_8OHhhHNkYZqmq5ju9uzbQ7Budf5KN8qiYYghH3qxgrWY9xZCFkb1AZsTocuUh20XK28D7_vqxyAIiEWSDXUPOP6372aeYfWmZ9AmTEXLn2PVlIanGTa87f-GOeJhmboSuH2sSLG9rKYtE0SfYsjYSHFNHKAYWprGQqZlQNEWGdlw72ZBnP5UFIk', selected: false },
-    { name: 'Core', icon: 'self_improvement', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCRwYol7GIGKa1YTSPFNoa5gNSolYPSUKG7inPmPv1vZ51wbXW-4ZfvDJEBa20Rj9rzFgkM7OWCNd8NC7KsT7TZ0pzBFBOG1zsfLuEnbCPTjWmaWzVIrwyR7Is8Z6SGxAOA-GkD1AXqlJ6sx6AzBUOIHsOA92BiCKq4Tc3SLYxyKl6nh0ixgPwL0ljRLtNgQ1YQPxuchDeIj0qbA9QsYUquyt2UPpsm3G2DPpnWo2kdn1BkdLEUimfDK4-PsQINRG8NPg', selected: false },
-    { name: 'Back', icon: 'eco', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA-WDAs_zkgqIHLb-cuc1uIMylKrnR1NtifKqxfksTmOW2Q1N6GOl1Nkr90GHfLtSitGV9cS2YgSUj1J_LbrLXQZmRqoHEhM8649USvsJdbdzf3VPLLEYi5BKamKrGWFjNV7O1KNIRYZHfPuUgNB-qE9VPkl53SB6b1J20ZIi8YxCr4JsFQ-qIamF1NTguAaopZ12S9yCfUj1EH4-xmiTPYLva_w6-USdv3BAtRyu_avmfjgf6j33kO0KdyX2Ex8CRYsLipk2YzCu8', selected: false },
-    { name: 'Shoulders', icon: 'nature_people', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBhMQkRln7I1vA7aVIFS2u8-0KPQDmz-kPcg_MkAdRWcTXWz3Ehp8jvtwB2Pgu9kqqQyX-DrTMdI-un1A_PHLVPdnM-OSJWRfVyMEty17Hnbl1-gP3t33i7hP1oAtxyvKxDN5e89Vq5tdvuQUZS0dECqI64IqIahKMVaODSeiHIMCCVrLjjNDGlzEKve4gnaFF4pWxvZUsbJvEVUB56Qyp-OkhgiqcIMhftyPLQsm7EWTIUo26lz9aaI0pY3MOSqTDmPG3sO3HTvYk', selected: false },
-    { name: 'Arms', icon: 'bolt', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCf1OowzTwsw-L0b3dKWGIHXIfrUXfrtbqMR49YLSteu9i2t4SqU1y-es8NdGFNmHEOJfeSmIcLFD5Vdfatrjttxbqn7CD5zE_Rf4x7ryKF-zMaD6DOVdTyfCPa40GNadGeadyw2qIw4cXXVOyHsPlKNwal3qoO9Z49NsPMpQ4NI7YBQc1keXlpaJNm9DRxiNGbPCtnRRCRFYISL-QPifRuIAQJWR7emKl4Dh9A2PItPvxnWo2kdn1BkdLEUimfDK4-PsQINRG8NPg', selected: false },
+    { name: 'Quads', icon: 'fitness_center', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAZ_wGH_iiOxu-viBV9qS5_TFaFMZSvpCEQHxDc7rQNt6NMj1Y2F4tq4Az8o3F7VFKor-bK9JJXlNt43oV9fuuf2dhPVZSrJH1WTeXE4a_rIf-irWrB4pZoagJkHFNWeoEDnrmhuSnToY0C3MtpIkQYGMSASLhOoOrPse9K-OHnTHKCRVfRA37IaF26OBUXUrRfyNYkyEfOpV9vB_l-KHbmV_2YgYUzxLv1kF6SQFRgTOUAY-FWTcIPZPjSHr0zGiRdy8F_8HoCifE' },
+    { name: 'Hamstrings', icon: 'fitness_center', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAZ_wGH_iiOxu-viBV9qS5_TFaFMZSvpCEQHxDc7rQNt6NMj1Y2F4tq4Az8o3F7VFKor-bK9JJXlNt43oV9fuuf2dhPVZSrJH1WTeXE4a_rIf-irWrB4pZoagJkHFNWeoEDnrmhuSnToY0C3MtpIkQYGMSASLhOoOrPse9K-OHnTHKCRVfRA37IaF26OBUXUrRfyNYkyEfOpV9vB_l-KHbmV_2YgYUzxLv1kF6SQFRgTOUAY-FWTcIPZPjSHr0zGiRdy8F_8HoCifE' },
+    { name: 'Pectorals', icon: 'pool', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAFNJrHDC30HhXrWj72G3G4Jsb9vtS7fWaPzP3QvVCelXk2hIp5JeszE6ZcJ8soVidJ1IHaQTlQ1a0X-2HBmAc_8OHhhHNkYZqmq5ju9uzbQ7Budf5KN8qiYYghH3qxgrWY9xZCFkb1AZsTocuUh20XK28D7_vqxyAIiEWSDXUPOP6372aeYfWmZ9AmTEXLn2PVlIanGTa87f-GOeJhmboSuH2sSLG9rKYtE0SfYsjYSHFNHKAYWprGQqZlQNEWGdlw72ZBnP5UFIk' },
+    { name: 'Abs', icon: 'self_improvement', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCRwYol7GIGKa1YTSPFNoa5gNSolYPSUKG7inPmPv1vZ51wbXW-4ZfvDJEBa20Rj9rzFgkM7OWCNd8NC7KsT7TZ0pzBFBOG1zsfLuEnbCPTjWmaWzVIrwyR7Is8Z6SGxAOA-GkD1AXqlJ6sx6AzBUOIHsOA92BiCKq4Tc3SLYxyKl6nh0ixgPwL0ljRLtNgQ1YQPxuchDeIj0qbA9QsYUquyt2UPpsm3G2DPpnWo2kdn1BkdLEUimfDK4-PsQINRG8NPg' },
+    { name: 'Lats', icon: 'eco', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA-WDAs_zkgqIHLb-cuc1uIMylKrnR1NtifKqxfksTmOW2Q1N6GOl1Nkr90GHfLtSitGV9cS2YgSUj1J_LbrLXQZmRqoHEhM8649USvsJdbdzf3VPLLEYi5BKamKrGWFjNV7O1KNIRYZHfPuUgNB-qE9VPkl53SB6b1J20ZIi8YxCr4JsFQ-qIamF1NTguAaopZ12S9yCfUj1EH4-xmiTPYLva_w6-USdv3BAtRyu_avmfjgf6j33kO0KdyX2Ex8CRYsLipk2YzCu8' },
+    { name: 'Delts', icon: 'nature_people', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBhMQkRln7I1vA7aVIFS2u8-0KPQDmz-kPcg_MkAdRWcTXWz3Ehp8jvtwB2Pgu9kqqQyX-DrTMdI-un1A_PHLVPdnM-OSJWRfVyMEty17Hnbl1-gP3t33i7hP1oAtxyvKxDN5e89Vq5tdvuQUZS0dECqI64IqIahKMVaODSeiHIMCCVrLjjNDGlzEKve4gnaFF4pWxvZUsbJvEVUB56Qyp-OkhgiqcIMhftyPLQsm7EWTIUo26lz9aaI0pY3MOSqTDmPG3sO3HTvYk' },
+    { name: 'Triceps', icon: 'bolt', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCf1OowzTwsw-L0b3dKWGIHXIfrUXfrtbqMR49YLSteu9i2t4SqU1y-es8NdGFNmHEOJfeSmIcLFD5Vdfatrjttxbqn7CD5zE_Rf4x7ryKF-zMaD6DOVdTyfCPa40GNadGeadyw2qIw4cXXVOyHsPlKNwal3qoO9Z49NsPMpQ4NI7YBQc1keXlpaJNm9DRxiNGbPCtnRRCRFYISL-QPifRuIAQJWR7emKl4Dh9A2PItPvxnWo2kdn1BkdLEUimfDK4-PsQINRG8NPg' },
+    { name: 'Biceps', icon: 'fitness_center', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCf1OowzTwsw-L0b3dKWGIHXIfrUXfrtbqMR49YLSteu9i2t4SqU1y-es8NdGFNmHEOJfeSmIcLFD5Vdfatrjttxbqn7CD5zE_Rf4x7ryKF-zMaD6DOVdTyfCPa40GNadGeadyw2qIw4cXXVOyHsPlKNwal3qoO9Z49NsPMpQ4NI7YBQc1keXlpaJNm9DRxiNGbPCtnRRCRFYISL-QPifRuIAQJWR7emKl4Dh9A2PItPvxnWo2kdn1BkdLEUimfDK4-PsQINRG8NPg' },
+    { name: 'Upper Back', icon: 'eco', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA-WDAs_zkgqIHLb-cuc1uIMylKrnR1NtifKqxfksTmOW2Q1N6GOl1Nkr90GHfLtSitGV9cS2YgSUj1J_LbrLXQZmRqoHEhM8649USvsJdbdzf3VPLLEYi5BKamKrGWFjNV7O1KNIRYZHfPuUgNB-qE9VPkl53SB6b1J20ZIi8YxCr4JsFQ-qIamF1NTguAaopZ12S9yCfUj1EH4-xmiTPYLva_w6-USdv3BAtRyu_avmfjgf6j33kO0KdyX2Ex8CRYsLipk2YzCu8' },
+    { name: 'Glutes', icon: 'fitness_center', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAafatswgdg6s02rk2r4Auei51P1ZK3WvPEw5MKpDJKxOQbzKI794ElgxBdPyYoHbN9SJgsea0wunNKri4tnAqOHq_Hw9XmgP0t5wXGkjIaLkIf6M9ZQF3MN_7DYlQS3K5HehKLue7YdnfeS1bCepRZFdfjINSRL9Dz0Y8JPwlXmQ7uWyjIfYg80jheCerY5BtdVeRHYQXQ5WX5tHtkNBLS2iifwCPbS5KI0YMQVwW48DraGCpzJBkbGgPo79NVcfWkY9zytQ2to_o' },
   ];
 
   const intensityLevels = [
@@ -99,12 +103,16 @@ const FitnessSanctuary = () => {
 
   // Map muscle names to exercise database targets
   const muscleToTargetMap = {
-    'Legs': 'quads',
-    'Chest': 'pectorals',
-    'Core': 'abs',
-    'Back': 'lats',
-    'Shoulders': 'delts',
-    'Arms': 'biceps'
+    'Quads': 'quads',
+    'Hamstrings': 'hamstrings',
+    'Pectorals': 'pectorals',
+    'Abs': 'abs',
+    'Lats': 'lats',
+    'Delts': 'delts',
+    'Triceps': 'triceps',
+    'Biceps': 'biceps',
+    'Upper Back': 'upper back',
+    'Glutes': 'glutes'
   };
 
   // Handle muscle selection for RL mode
@@ -114,8 +122,8 @@ const FitnessSanctuary = () => {
       if (prev.includes(targetMuscle)) {
         return prev.filter(m => m !== targetMuscle);
       }
-      if (prev.length >= 3) {
-        return prev; // Max 3 muscles
+      if (prev.length >= 2) {
+        return prev; // Max 2 muscles
       }
       return [...prev, targetMuscle];
     });
@@ -190,21 +198,47 @@ const FitnessSanctuary = () => {
               </p>
             </div>
 
-            {/* Difficulty Level Selector - Dropdown */}
-            <div className="flex items-end gap-4">
-              <div className="flex-1">
-                <label className="mb-2 block text-sm font-semibold text-on-surface">
+            {/* Difficulty Level Selector - Cards Grid */}
+            <div className="space-y-4">
+              <div>
+                <label className="mb-3 block text-sm font-semibold text-on-surface">
                   Select Difficulty Level
                 </label>
-                <select
-                  value={selectedIntensity}
-                  onChange={(e) => setSelectedIntensity(e.target.value)}
-                  className="w-full rounded-lg border border-outline-variant/40 bg-surface-container-low px-4 py-3 text-sm font-medium text-on-surface transition-all hover:border-primary/50 focus:border-primary focus:outline-none"
-                >
-                  <option value="Gentle">Gentle (Beginner)</option>
-                  <option value="Steady">Steady (Intermediate)</option>
-                  <option value="Vigorous">Vigorous (Advanced)</option>
-                </select>
+              </div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                {intensityLevels.map((level) => (
+                  <button
+                    key={level.name}
+                    onClick={() => setSelectedIntensity(level.name)}
+                    className={`rounded-2xl border p-4 text-left transition-all duration-300 ${
+                      selectedIntensity === level.name
+                        ? 'border-primary bg-primary-container/55'
+                        : 'border-outline-variant/40 bg-surface-container-low hover:border-primary/45'
+                    }`}
+                  >
+                    <div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-full ${selectedIntensity === level.name ? 'bg-primary' : 'bg-surface-container-high'}`}>
+                      <span
+                        className="material-symbols-outlined text-base"
+                        style={{ color: selectedIntensity === level.name ? '#e9ffe5' : '' }}
+                      >
+                        {level.icon}
+                      </span>
+                    </div>
+                    <h4 className="text-base font-semibold text-on-surface">{level.name}</h4>
+                    <p className="mb-3 text-xs text-on-surface-variant">{level.description}</p>
+                    <span className="inline-flex items-center text-[11px] font-semibold text-on-surface-variant">
+                      {selectedIntensity === level.name ? (
+                        <>
+                          Selected <span className="material-symbols-outlined ml-1 text-[14px]">check_circle</span>
+                        </>
+                      ) : (
+                        <>
+                          Choose <span className="material-symbols-outlined ml-1 text-[14px]">arrow_forward</span>
+                        </>
+                      )}
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -381,10 +415,10 @@ const FitnessSanctuary = () => {
             <div className="space-y-5">
               <div>
                 <h3 className="text-xl font-semibold text-on-surface">Step 1: Select Focus Areas</h3>
-                <p className="mt-1 text-xs text-on-surface-variant">Choose one or more muscle groups to target</p>
+                <p className="mt-1 text-xs text-on-surface-variant">Choose up to 2 muscle groups to target</p>
               </div>
 
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
               {muscleGroups.map((muscle) => {
                 const targetMuscle = muscleToTargetMap[muscle.name] || muscle.name.toLowerCase();
                 const isSelectedForRL = selectedMuscles.includes(targetMuscle);
@@ -395,7 +429,7 @@ const FitnessSanctuary = () => {
                     setSelectedFocus(muscle.name);
                     toggleMuscleSelection(muscle.name);
                   }}
-                  className={`group relative aspect-[1/1.12] overflow-hidden rounded-xl border border-outline-variant/40 bg-surface-container-low transition-all duration-300 hover:border-primary/50 ${
+                  className={`group relative aspect-square overflow-hidden rounded-lg border border-outline-variant/40 bg-surface-container-low transition-all duration-300 hover:border-primary/50 ${
                     selectedFocus === muscle.name ? 'border-primary bg-primary-container/20' : ''
                   }`}
                 >
@@ -404,20 +438,11 @@ const FitnessSanctuary = () => {
                     className="absolute inset-0 h-full w-full object-cover opacity-55 saturate-75 transition-opacity group-hover:opacity-70"
                     src={muscle.image}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#f8faf3]/95 via-[#f8faf3]/60 to-transparent" />
-                  <div className="absolute inset-0 flex flex-col justify-end p-3">
-                    <span
-                      className="material-symbols-outlined mb-2 text-lg"
-                      style={{ color: selectedFocus === muscle.name ? '#436745' : '' }}
-                    >
-                      {muscle.icon}
-                    </span>
-                    <h4 className="text-sm font-semibold text-on-surface">{muscle.name}</h4>
-                    <p className="text-[11px] text-on-surface-variant">
-                      {selectedFocus === muscle.name ? 'Selected' : 'Focus area'}
-                    </p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#f8faf3]/60 via-[#f8faf3]/20 to-transparent" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
+                    <h4 className="text-sm font-bold text-on-surface text-center">{muscle.name}</h4>
                   </div>
-                  {selectedFocus === muscle.name && (
+                  {selectedMuscles.includes(targetMuscle) && (
                     <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary">
                       <span className="material-symbols-outlined text-[13px] text-on-primary">check</span>
                     </div>
