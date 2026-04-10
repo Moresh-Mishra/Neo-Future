@@ -839,19 +839,6 @@ const AICompanion = () => {
               )}
 
               {/* Bottom Actions */}
-              <div className="flex justify-between items-center mt-3 px-1">
-                <div className="flex gap-4">
-                  <span 
-                    className="material-symbols-outlined text-on-surface-variant text-lg cursor-pointer hover:text-primary transition-colors duration-200"
-                    title="Emoji (coming soon)"
-                  >
-                    sentiment_satisfied
-                  </span>
-                </div>
-                <span className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">
-                  {currentChatId ? 'Session Active' : 'Demo Mode'}
-                </span>
-              </div>
             </div>
           </div>
         </div>
