@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TopNavBar from './TopNavBar';
 import Footer from './Footer';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const HealthAnalytics = () => {
   const [timeRange, setTimeRange] = useState('week');
+  const [moodData, setMoodData] = useState([]);
+  const [averageMoodScore, setAverageMoodScore] = useState(0);
+  const [sleepQualityData, setSleepQualityData] = useState([]);
+  const [averageSleepHours, setAverageSleepHours] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const moodData = [
+  // Default data for users with no reflections
+  const getDefaultMoodData = () => [
     { day: 'Mon', mood: 6.5 },
     { day: 'Tue', mood: 6.8 },
     { day: 'Wed', mood: 7.2 },
@@ -16,7 +22,270 @@ const HealthAnalytics = () => {
     { day: 'Sun', mood: 8.1 },
   ];
 
-  const sleepQualityData = [
+  // Fetch mood data from daily reflections
+  useEffect(() => {
+    const fetchMoodData = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const authToken = localStorage.getItem('authToken');
+
+        if (!user || !authToken) {
+          console.error('User not authenticated');
+          setMoodData(getDefaultMoodData());
+          setIsLoading(false);
+          return;
+        }
+
+        const response = await fetch(`http://localhost:5000/api/reflections/${user.user_id}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const reflections = data.reflections || [];
+
+          // Create a map of dates to mood values for quick lookup
+          const moodMap = {};
+          reflections.forEach(reflection => {
+            // Handle different date formats from database
+            const dateStr = reflection.submission_date ? reflection.submission_date.split('T')[0] : '';
+            moodMap[dateStr] = reflection.yesterday_rating || 0;
+          });
+
+          const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const chartData = [];
+          const isMonthView = timeRange === 'month';
+          
+          if (isMonthView) {
+            // Show last 7 months with current month on the right
+            const monthlyMoodMap = {};
+            reflections.forEach(reflection => {
+              const dateStr = reflection.submission_date ? reflection.submission_date.split('T')[0] : '';
+              const [year, month] = dateStr.split('-');
+              const monthKey = `${year}-${month}`;
+              
+              if (!monthlyMoodMap[monthKey]) {
+                monthlyMoodMap[monthKey] = [];
+              }
+              monthlyMoodMap[monthKey].push(reflection.yesterday_rating || 0);
+            });
+            
+            // Generate last 7 months including current month
+            for (let i = 6; i >= 0; i--) {
+              const date = new Date();
+              date.setMonth(date.getMonth() - i);
+              
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const monthKey = `${year}-${month}`;
+              
+              const monthMoods = monthlyMoodMap[monthKey] || [];
+              const monthMood = monthMoods.length > 0 
+                ? (monthMoods.reduce((sum, m) => sum + m, 0) / monthMoods.length) 
+                : 0;
+              
+              chartData.push({
+                day: monthNames[date.getMonth()],
+                mood: parseFloat(monthMood.toFixed(1)),
+                date: monthKey
+              });
+            }
+            
+            // Calculate average only for months with actual data (mood > 0)
+            const monthsWithData = chartData.filter(d => d.mood > 0);
+            const average = monthsWithData.length > 0
+              ? (monthsWithData.reduce((sum, d) => sum + d.mood, 0) / monthsWithData.length).toFixed(1)
+              : 0;
+            
+            setMoodData(chartData);
+            setAverageMoodScore(parseFloat(average));
+          } else {
+            // Week view: Show last 7 days
+            for (let i = 6; i >= 0; i--) {
+              const date = new Date();
+              date.setDate(date.getDate() - i);
+              
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              const dateStr = `${year}-${month}-${day}`;
+              
+              const dayOfWeek = dayNames[date.getDay()];
+              const mood = moodMap[dateStr] !== undefined ? moodMap[dateStr] : 0;
+              
+              chartData.push({
+                day: dayOfWeek,
+                mood: mood,
+                date: dateStr
+              });
+            }
+            
+            // Calculate average only for days with actual data (mood > 0)
+            const daysWithData = chartData.filter(d => d.mood > 0);
+            const average = daysWithData.length > 0
+              ? (daysWithData.reduce((sum, d) => sum + d.mood, 0) / daysWithData.length).toFixed(1)
+              : 0;
+            
+            setMoodData(chartData);
+            setAverageMoodScore(parseFloat(average));
+          }
+        } else {
+          console.error('Failed to fetch reflections');
+          setMoodData(getDefaultMoodData());
+          setAverageMoodScore(7.4);
+        }
+      } catch (error) {
+        console.error('Error fetching mood data:', error);
+        setMoodData(getDefaultMoodData());
+        setAverageMoodScore(7.4);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMoodData();
+  }, [timeRange]);
+
+  // Helper function to parse sleep hours from "7 hrs" format
+  const parseSleepHours = (sleepStr) => {
+    if (!sleepStr) return 0;
+    const match = sleepStr.match(/(\d+\.?\d*)/);
+    return match ? parseFloat(match[1]) : 0;
+  };
+
+  // Fetch sleep data from daily reflections
+  useEffect(() => {
+    const fetchSleepData = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const authToken = localStorage.getItem('authToken');
+
+        if (!user || !authToken) {
+          console.error('User not authenticated');
+          setSleepQualityData(getDefaultSleepData());
+          return;
+        }
+
+        const response = await fetch(`http://localhost:5000/api/reflections/${user.user_id}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const reflections = data.reflections || [];
+
+          // Create a map of dates to sleep hours
+          const sleepMap = {};
+          reflections.forEach(reflection => {
+            const dateStr = reflection.submission_date ? reflection.submission_date.split('T')[0] : '';
+            sleepMap[dateStr] = parseSleepHours(reflection.sleep_hours);
+          });
+
+          // Generate last 7 or 12 months depending on timeRange
+          const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const chartData = [];
+          const isMonthView = timeRange === 'month';
+          
+          if (isMonthView) {
+            // Show last 7 months with current month on the right
+            const monthlySleepMap = {};
+            reflections.forEach(reflection => {
+              const dateStr = reflection.submission_date ? reflection.submission_date.split('T')[0] : '';
+              const [year, month] = dateStr.split('-');
+              const monthKey = `${year}-${month}`;
+              
+              if (!monthlySleepMap[monthKey]) {
+                monthlySleepMap[monthKey] = [];
+              }
+              monthlySleepMap[monthKey].push(parseSleepHours(reflection.sleep_hours));
+            });
+            
+            // Generate last 7 months including current month
+            for (let i = 6; i >= 0; i--) {
+              const date = new Date();
+              date.setMonth(date.getMonth() - i);
+              
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const monthKey = `${year}-${month}`;
+              
+              const monthlySleepHours = monthlySleepMap[monthKey] || [];
+              const monthSleep = monthlySleepHours.length > 0 
+                ? (monthlySleepHours.reduce((sum, h) => sum + h, 0) / monthlySleepHours.length) 
+                : 0;
+              
+              chartData.push({
+                day: monthNames[date.getMonth()],
+                hours: parseFloat(monthSleep.toFixed(1)),
+                date: monthKey
+              });
+            }
+            
+            // Calculate average only for months with actual data (hours > 0)
+            const monthsWithData = chartData.filter(d => d.hours > 0);
+            const average = monthsWithData.length > 0
+              ? (monthsWithData.reduce((sum, d) => sum + d.hours, 0) / monthsWithData.length).toFixed(1)
+              : 0;
+            
+            setSleepQualityData(chartData);
+            setAverageSleepHours(parseFloat(average));
+          } else {
+            // Week view: Show last 7 days
+            for (let i = 6; i >= 0; i--) {
+              const date = new Date();
+              date.setDate(date.getDate() - i);
+              
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              const dateStr = `${year}-${month}-${day}`;
+              
+              const dayOfWeek = dayNames[date.getDay()];
+              const hours = sleepMap[dateStr] !== undefined ? sleepMap[dateStr] : 0;
+              
+              chartData.push({
+                day: dayOfWeek,
+                hours: hours,
+                date: dateStr
+              });
+            }
+            
+            // Calculate average only for days with actual data (hours > 0)
+            const daysWithData = chartData.filter(d => d.hours > 0);
+            const average = daysWithData.length > 0
+              ? (daysWithData.reduce((sum, d) => sum + d.hours, 0) / daysWithData.length).toFixed(1)
+              : 0;
+            
+            setSleepQualityData(chartData);
+            setAverageSleepHours(parseFloat(average));
+          }
+        } else {
+          console.error('Failed to fetch sleep data');
+          setSleepQualityData(getDefaultSleepData());
+          setAverageSleepHours(7.2);
+        }
+      } catch (error) {
+        console.error('Error fetching sleep data:', error);
+        setSleepQualityData(getDefaultSleepData());
+        setAverageSleepHours(7.2);
+      }
+    };
+
+    fetchSleepData();
+  }, [timeRange]);
+
+  // Default sleep data for users with no reflections
+  const getDefaultSleepData = () => [
     { day: 'Mon', hours: 6.5 },
     { day: 'Tue', hours: 7.2 },
     { day: 'Wed', hours: 6.8 },
@@ -27,6 +296,7 @@ const HealthAnalytics = () => {
   ];
 
   const sleepData = [60, 80, 75, 90, 65, 85, 95];
+
   const biometricStats = [
     { label: 'Heart Rate Var.', value: '62 ms', change: '+4%', icon: 'pulse_alert', positive: true },
     { label: 'Respiration', value: '14 bpm', change: 'Stable', icon: 'air', positive: false },
@@ -73,7 +343,9 @@ const HealthAnalytics = () => {
                 <div className="mb-8 flex flex-wrap items-start justify-between gap-3 md:mb-12">
                   <div>
                     <h3 className="text-xl font-headline font-bold text-[#436745]">Mood Resilience</h3>
-                    <p className="text-on-surface-variant text-sm">Average mood score: 7.4/10</p>
+                    <p className="text-on-surface-variant text-sm">
+                      {isLoading ? 'Loading...' : `Average mood score: ${averageMoodScore}/10`}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2 text-[#436745]">
                     <span className="text-xs font-bold uppercase tracking-widest">Steady Growth</span>
@@ -151,18 +423,23 @@ const HealthAnalytics = () => {
               </section>
 
               {/* Sleep Cycles (Bento) */}
-              <section className="md:col-span-4 bg-surface-container-high rounded-[1.5rem] p-4 md:rounded-[2rem] md:p-8">
-                <div className="flex items-center gap-3 mb-8">
+              <section className="md:col-span-4 bg-surface-container-high rounded-[1.5rem] p-3 md:rounded-[2rem] md:p-6">
+                <div className="flex items-center gap-3 mb-4">
                   <span className="material-symbols-outlined text-tertiary">bedtime</span>
                   <h3 className="text-lg font-headline font-bold text-tertiary">Sleep Quality</h3>
                 </div>
+                <p className="text-on-surface-variant text-sm mb-6">
+                  {isLoading ? 'Loading...' : `Average sleep: ${averageSleepHours}h`}
+                </p>
                 <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={sleepQualityData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <BarChart data={sleepQualityData} margin={{ top: 5, right: 10, left: -20, bottom: 30 }}>
                     <CartesianGrid strokeDasharray="0" stroke="transparent" vertical={false} horizontal={false} />
                     <XAxis 
                       dataKey="day" 
-                      tick={false}
+                      stroke="rgba(89, 97, 88, 0.5)"
+                      tick={{ fontSize: 11, fontWeight: 600, fill: 'rgba(89, 97, 88, 0.7)' }}
                       axisLine={false}
+                      interval={0}
                     />
                     <YAxis 
                       domain={[0, 9]}
@@ -189,8 +466,8 @@ const HealthAnalytics = () => {
                     />
                   </BarChart>
                 </ResponsiveContainer>
-                <div className="mt-6 text-center">
-                  <p className="text-tertiary font-bold text-2xl">7h 42m</p>
+                <div className="mt-2 text-center">
+                  <p className="text-tertiary font-bold text-2xl">{averageSleepHours}h</p>
                   <p className="text-on-surface-variant text-xs font-medium mt-1">Weekly Average</p>
                 </div>
               </section>

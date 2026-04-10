@@ -858,11 +858,30 @@ app.get('/api/reflections/:userId', authMiddleware, async (req, res) => {
 
       const [rows] = await conn.query(query, [userId]);
 
-      // Parse JSON fields
-      const parsedRows = rows.map(row => ({
-        ...row,
-        emotions: row.emotions ? JSON.parse(row.emotions) : []
-      }));
+      // Parse JSON fields with error handling
+      const parsedRows = rows.map(row => {
+        let emotionsArray = [];
+        try {
+          if (row.emotions) {
+            emotionsArray = typeof row.emotions === 'string' 
+              ? JSON.parse(row.emotions) 
+              : row.emotions;
+            // If it's not an array, convert it
+            if (!Array.isArray(emotionsArray)) {
+              emotionsArray = [];
+            }
+          }
+        } catch (e) {
+          // If JSON parse fails, try to split by comma
+          if (typeof row.emotions === 'string' && row.emotions.length > 0) {
+            emotionsArray = row.emotions.split(',').map(e => e.trim());
+          }
+        }
+        return {
+          ...row,
+          emotions: emotionsArray
+        };
+      });
 
       conn.release();
 
