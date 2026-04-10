@@ -1,0 +1,10 @@
+flask==3.0.2
+flask-cors==4.0.0
+python-dotenv==1.0.1
+requests==2.31.0
+numpy==1.26.4
+opencv-python==4.10.0.82
+transformers==4.44.2
+torch==2.4.1
+deepface==0.0.92
+tensorflow==2.17.0

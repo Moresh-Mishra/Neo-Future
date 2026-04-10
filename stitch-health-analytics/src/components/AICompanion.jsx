@@ -3,12 +3,16 @@ import TopNavBar from './TopNavBar';
 import Footer from './Footer';
 
 const PANVEL_BASE_URL = process.env.REACT_APP_PANVEL_BASE_URL || '';
+const EMOTION_API_BASE_URL = process.env.REACT_APP_EMOTION_API_BASE_URL || 'http://localhost:5001';
 const PUBLIC_URL = process.env.PUBLIC_URL || '';
 const AVATAR_BASE_URL = PANVEL_BASE_URL
   ? `${PANVEL_BASE_URL}/static/avatars`
   : `${PUBLIC_URL}/avatars`;
 const TTS_ENDPOINTS = ['webgpu', 'ws://127.0.0.1:8882/', 'wasm'];
 const VOICE_URL = `${PUBLIC_URL}/voices`;
+const EMOTION_TEXT_ENDPOINT = `${EMOTION_API_BASE_URL}/api/ai/text-emotion`;
+const EMOTION_FACE_ENDPOINT = `${EMOTION_API_BASE_URL}/api/ai/facial-emotion`;
+const EMOTION_VOICE_ENDPOINT = `${EMOTION_API_BASE_URL}/api/ai/voice-emotion`;
 
 const AVATARS = {
   julia: {
@@ -83,11 +87,15 @@ const AICompanion = () => {
   const [avatarError, setAvatarError] = useState('');
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [cameraError, setCameraError] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [micError, setMicError] = useState('');
   const messagesEndRef = useRef(null);
   const avatarContainerRef = useRef(null);
   const avatarInstanceRef = useRef({ head: null, headtts: null });
   const cameraStreamRef = useRef(null);
   const cameraVideoRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -121,6 +129,9 @@ const AICompanion = () => {
 
   useEffect(() => {
     return () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
       if (cameraStreamRef.current) {
         cameraStreamRef.current.getTracks().forEach(track => track.stop());
         cameraStreamRef.current = null;
@@ -338,14 +349,13 @@ const AICompanion = () => {
       setIsLoading(true);
       const token = localStorage.getItem('token');
 
-      // Call Panvel emotion detection API
-      const apiUrl = `${PANVEL_BASE_URL}/api/ai/combined-emotion`;
+      // Call Stitch emotion detection API
+      const apiUrl = EMOTION_TEXT_ENDPOINT;
       const requestBody = {
         text: userMessage,
-        chat_id: currentChatId,
       };
 
-      console.log('Sending message to Panvel backend:', requestBody);
+      console.log('Sending message to emotion backend:', requestBody);
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -361,12 +371,7 @@ const AICompanion = () => {
       }
 
       const data = await response.json();
-      console.log('AI Response from Panvel:', data);
-
-      // Update chat ID if this was a new chat
-      if (data.chat_id) {
-        setCurrentChatId(data.chat_id);
-      }
+      console.log('AI Response from emotion backend:', data);
 
       // Update avatar mood and emotions
       if (data.avatarMood) {
@@ -380,16 +385,7 @@ const AICompanion = () => {
 
       // Add AI response to UI
       if (responseMessage) {
-        const aiMessage = {
-          type: 'bot',
-          text: responseMessage,
-          time: formatTime(),
-          role: 'ai',
-          emotion: data.avatarMood,
-        };
-        setMessages(prev => [...prev, aiMessage]);
-
-        speakResponse(responseMessage);
+        addBotMessage(responseMessage, data.avatarMood);
       }
     } catch (err) {
       console.error('Error calling AI API:', err);
@@ -424,6 +420,167 @@ const AICompanion = () => {
     }, 50);
   };
 
+  const waitForVideoReady = () => new Promise((resolve) => {
+    if (!cameraVideoRef.current) {
+      resolve();
+      return;
+    }
+    if (cameraVideoRef.current.readyState >= 2) {
+      resolve();
+      return;
+    }
+    cameraVideoRef.current.onloadedmetadata = () => resolve();
+  });
+
+  const addBotMessage = (text, mood) => {
+    if (!text) {
+      return;
+    }
+    const aiMessage = {
+      type: 'bot',
+      text,
+      time: formatTime(),
+      role: 'ai',
+      emotion: mood,
+    };
+    setMessages(prev => [...prev, aiMessage]);
+    speakResponse(text);
+  };
+
+  const analyzeCameraFrame = async () => {
+    if (!cameraVideoRef.current) {
+      return;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = cameraVideoRef.current.videoWidth || 640;
+    canvas.height = cameraVideoRef.current.videoHeight || 480;
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return;
+    }
+
+    context.drawImage(cameraVideoRef.current, 0, 0, canvas.width, canvas.height);
+    const imageData = canvas.toDataURL('image/jpeg', 0.85);
+
+    try {
+      setIsLoading(true);
+      const response = await fetch(EMOTION_FACE_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image: imageData }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Camera API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.avatarMood) {
+        setAvatarMood(data.avatarMood);
+      }
+      if (data.response) {
+        addBotMessage(data.response, data.avatarMood);
+      }
+    } catch (err) {
+      console.error('Camera emotion error:', err);
+      setCameraError(err.message || 'Camera analysis failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sendVoiceEmotion = async (audioBlob) => {
+    try {
+      setIsLoading(true);
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'voice.webm');
+
+      const response = await fetch(EMOTION_VOICE_ENDPOINT, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Voice API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.text) {
+        setMessages(prev => [...prev, {
+          type: 'user',
+          text: data.text,
+          time: formatTime(),
+          role: 'user',
+        }]);
+      }
+
+      if (data.avatarMood) {
+        setAvatarMood(data.avatarMood);
+      }
+
+      if (data.response) {
+        addBotMessage(data.response, data.avatarMood);
+      }
+    } catch (err) {
+      console.error('Voice emotion error:', err);
+      setMicError(err.message || 'Voice analysis failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const startRecording = async () => {
+    setMicError('');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setMicError('Microphone not supported in this browser.');
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
+        stream.getTracks().forEach(track => track.stop());
+        sendVoiceEmotion(audioBlob);
+      };
+
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Microphone access error:', err);
+      setMicError('Unable to access microphone. Check permissions.');
+      setIsRecording(false);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+  };
+
+  const handleMicToggle = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
   const startCamera = async () => {
     setCameraError('');
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -438,6 +595,8 @@ const AICompanion = () => {
         cameraVideoRef.current.srcObject = stream;
       }
       setIsCameraOn(true);
+      await waitForVideoReady();
+      analyzeCameraFrame();
     } catch (err) {
       console.error('Camera access error:', err);
       setCameraError('Unable to access camera. Check permissions.');
@@ -638,8 +797,13 @@ const AICompanion = () => {
                     <span className="material-symbols-outlined">videocam</span>
                   </button>
                   <button 
-                    className="p-2 text-primary-dim hover:bg-primary/10 rounded-full transition-colors duration-200"
-                    title="Microphone (coming soon)"
+                    onClick={handleMicToggle}
+                    className={`p-2 rounded-full transition-colors duration-200 ${
+                      isRecording
+                        ? 'bg-primary/20 text-primary'
+                        : 'text-primary-dim hover:bg-primary/10'
+                    }`}
+                    title={isRecording ? 'Stop recording' : 'Start recording'}
                   >
                     <span className="material-symbols-outlined">mic</span>
                   </button>
@@ -656,6 +820,11 @@ const AICompanion = () => {
               {cameraError && (
                 <div className="mt-2 text-[11px] text-red-200">
                   {cameraError}
+                </div>
+              )}
+              {micError && (
+                <div className="mt-2 text-[11px] text-red-200">
+                  {micError}
                 </div>
               )}
 
