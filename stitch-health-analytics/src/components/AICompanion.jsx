@@ -14,6 +14,7 @@ const TTS_SPEED = 1.22;
 const EMOTION_TEXT_ENDPOINT = `${EMOTION_API_BASE_URL}/api/ai/text-emotion`;
 const EMOTION_FACE_ENDPOINT = `${EMOTION_API_BASE_URL}/api/ai/facial-emotion`;
 const EMOTION_VOICE_ENDPOINT = `${EMOTION_API_BASE_URL}/api/ai/voice-emotion`;
+const EMOTION_COMBINED_ENDPOINT = `${EMOTION_API_BASE_URL}/api/ai/combined-emotion`;
 
 const AVATARS = {
   julia: {
@@ -78,6 +79,7 @@ const AICompanion = () => {
   const cameraVideoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const micStreamRef = useRef(null);
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -303,6 +305,10 @@ const AICompanion = () => {
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();
       }
+      if (micStreamRef.current) {
+        micStreamRef.current.getTracks().forEach(track => track.stop());
+        micStreamRef.current = null;
+      }
       if (cameraStreamRef.current) {
         cameraStreamRef.current.getTracks().forEach(track => track.stop());
         cameraStreamRef.current = null;
@@ -478,13 +484,21 @@ const AICompanion = () => {
       const token = localStorage.getItem('token');
 
       // Call Stitch emotion detection API
-      const apiUrl = EMOTION_TEXT_ENDPOINT;
+      let apiUrl = EMOTION_TEXT_ENDPOINT;
       const requestBody = {
         user_message: userMessage,
         history: nextHistory,
         chat_id: currentChatId,
         user_id: getStoredUserId(),
       };
+
+      if (isCameraOn) {
+        const imageData = getCameraImageData();
+        if (imageData) {
+          apiUrl = EMOTION_COMBINED_ENDPOINT;
+          requestBody.image = imageData;
+        }
+      }
 
       console.log('Sending message to emotion backend:', requestBody);
 
@@ -571,6 +585,23 @@ const AICompanion = () => {
     cameraVideoRef.current.onloadedmetadata = () => resolve();
   });
 
+  const getCameraImageData = () => {
+    if (!cameraVideoRef.current) {
+      return null;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = cameraVideoRef.current.videoWidth || 640;
+    canvas.height = cameraVideoRef.current.videoHeight || 480;
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return null;
+    }
+
+    context.drawImage(cameraVideoRef.current, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', 0.85);
+  };
+
   const addBotMessage = (text, mood) => {
     if (!text) {
       return;
@@ -592,16 +623,10 @@ const AICompanion = () => {
       return;
     }
 
-    const canvas = document.createElement('canvas');
-    canvas.width = cameraVideoRef.current.videoWidth || 640;
-    canvas.height = cameraVideoRef.current.videoHeight || 480;
-    const context = canvas.getContext('2d');
-    if (!context) {
+    const imageData = getCameraImageData();
+    if (!imageData) {
       return;
     }
-
-    context.drawImage(cameraVideoRef.current, 0, 0, canvas.width, canvas.height);
-    const imageData = canvas.toDataURL('image/jpeg', 0.85);
 
     try {
       setIsLoading(true);
@@ -648,13 +673,41 @@ const AICompanion = () => {
       }
 
       const data = await response.json();
-      if (data.text) {
+      const transcript = data.text || '';
+
+      if (transcript) {
         setMessages(prev => [...prev, {
           type: 'user',
-          text: data.text,
+          text: transcript,
           time: formatTime(),
           role: 'user',
         }]);
+      }
+
+      if (isCameraOn && transcript) {
+        const imageData = getCameraImageData();
+        if (imageData) {
+          const combinedResponse = await fetch(EMOTION_COMBINED_ENDPOINT, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: transcript, image: imageData }),
+          });
+
+          if (!combinedResponse.ok) {
+            throw new Error(`Combined API error: ${combinedResponse.status}`);
+          }
+
+          const combinedData = await combinedResponse.json();
+          if (combinedData.avatarMood) {
+            setAvatarMood(combinedData.avatarMood);
+          }
+          if (combinedData.response) {
+            addBotMessage(combinedData.response, combinedData.avatarMood);
+          }
+          return;
+        }
       }
 
       if (data.avatarMood) {
@@ -681,6 +734,7 @@ const AICompanion = () => {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStreamRef.current = stream;
       const recorder = new MediaRecorder(stream);
       audioChunksRef.current = [];
 
@@ -692,7 +746,11 @@ const AICompanion = () => {
 
       recorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
-        stream.getTracks().forEach(track => track.stop());
+        audioChunksRef.current = [];
+        if (micStreamRef.current) {
+          micStreamRef.current.getTracks().forEach(track => track.stop());
+          micStreamRef.current = null;
+        }
         sendVoiceEmotion(audioBlob);
       };
 
@@ -943,7 +1001,7 @@ const AICompanion = () => {
             <div className="border-t border-outline-variant/10 bg-surface-container-low/40 p-4 md:p-6">
               <div className="relative flex items-center">
                 <input
-                  className="w-full rounded-xl border-none border-b-2 border-outline-variant/30 bg-surface-container-low py-3 pl-4 pr-16 text-sm placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-0 md:py-4 disabled:opacity-50"
+                  className="w-full rounded-xl border-none border-b-2 border-outline-variant/30 bg-surface-container-low py-3 pl-4 pr-36 text-sm placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-0 md:py-4 disabled:opacity-50"
                   placeholder="Share your thoughts..."
                   type="text"
                   value={message}
@@ -996,25 +1054,6 @@ const AICompanion = () => {
               )}
 
               {/* Bottom Actions */}
-              <div className="flex justify-between items-center mt-3 px-1">
-                <div className="flex gap-4">
-                  <span 
-                    className="material-symbols-outlined text-on-surface-variant text-lg cursor-pointer hover:text-primary transition-colors duration-200"
-                    title="Emoji (coming soon)"
-                  >
-                    sentiment_satisfied
-                  </span>
-                  <span 
-                    className="material-symbols-outlined text-on-surface-variant text-lg cursor-pointer hover:text-primary transition-colors duration-200"
-                    title="Attach file (coming soon)"
-                  >
-                    attach_file
-                  </span>
-                </div>
-                <span className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">
-                  {currentChatId ? 'Session Active' : 'Demo Mode'}
-                </span>
-              </div>
             </div>
           </div>
         </div>

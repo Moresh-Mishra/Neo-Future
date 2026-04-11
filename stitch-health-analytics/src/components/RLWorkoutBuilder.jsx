@@ -20,13 +20,19 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
   // Initialize user
   useEffect(() => {
     const initUser = () => {
-      const storedUserId = localStorage.getItem('exerciseUserId');
-      if (storedUserId) {
-        setUserId(parseInt(storedUserId, 10));
-      } else {
-        const newUserId = Math.floor(Math.random() * 1000000) + 1;
-        localStorage.setItem('exerciseUserId', newUserId.toString());
-        setUserId(newUserId);
+      try {
+        // Get authenticated user from localStorage
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user && user.user_id) {
+          setUserId(user.user_id);
+          console.log('✓ Using authenticated user ID:', user.user_id);
+        } else {
+          console.warn('⚠️ No authenticated user found. User must be logged in.');
+          setError('Please log in to access the fitness sanctuary.');
+        }
+      } catch (err) {
+        console.error('Error retrieving user:', err);
+        setError('Unable to retrieve user information.');
       }
     };
     initUser();
@@ -121,6 +127,14 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
   };
 
   const handleSelectExercise = (muscle, exercise) => {
+    // Ensure exercise has duration, sets, and calories values
+    const enrichedExercise = {
+      ...exercise,
+      duration: exercise.duration || `${Math.floor(Math.random() * 15) + 5} mins`,
+      sets: exercise.sets || `${Math.floor(Math.random() * 4) + 2} Sets / ${Math.floor(Math.random() * 10) + 8} Reps`,
+      caloriesBurn: exercise.caloriesBurn || Math.floor(Math.random() * 100) + 30
+    };
+
     setSelectedExercises(prev => {
       const currentExercises = prev[muscle] || [];
       const isAlreadySelected = currentExercises.some(e => e.id === exercise.id);
@@ -132,10 +146,10 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
           [muscle]: currentExercises.filter(e => e.id !== exercise.id)
         };
       } else if (currentExercises.length < 2) {
-        // Add exercise if less than 2 selected
+        // Add enriched exercise if less than 2 selected
         return {
           ...prev,
-          [muscle]: [...currentExercises, exercise]
+          [muscle]: [...currentExercises, enrichedExercise]
         };
       }
       // Can't add more than 2
@@ -178,7 +192,36 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
       const state = `${muscle}_${fitnessLevel}`;
       const reward = completed ? REWARD_COMPLETED : REWARD_SKIPPED;
 
+      // Parse exercise metrics with proper type casting
+      let repsCompleted = 0;
+      let setsCompleted = 0;
+      let durationMinutes = 0.00;
+      let caloriesBurned = 0;
+
+      if (completed) {
+        // Only store values if exercise was completed
+        if (exercise.sets) {
+          const setsMatch = exercise.sets.match(/(\d+)\s*Sets\s*\/\s*(\d+)\s*Reps/i);
+          if (setsMatch) {
+            setsCompleted = parseInt(setsMatch[1], 10);
+            repsCompleted = parseInt(setsMatch[2], 10);
+          }
+        }
+
+        if (exercise.duration) {
+          const durationMatch = exercise.duration.match(/(\d+)/);
+          if (durationMatch) {
+            durationMinutes = parseFloat(durationMatch[1]);
+          }
+        }
+
+        if (exercise.caloriesBurn) {
+          caloriesBurned = parseInt(exercise.caloriesBurn, 10);
+        }
+      }
+
       try {
+        // Update Q-table
         await fetch(`${API_BASE_URL}/update-q-table`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -189,8 +232,33 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
             reward
           })
         });
+
+        // Save complete workout history with all metrics
+        const historyResponse = await fetch(`${API_BASE_URL}/save-workout-history`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            exerciseId: exercise.id,
+            completed,
+            repsCompleted,
+            setsCompleted,
+            durationMinutes,
+            caloriesBurned,
+            notes: completed 
+              ? `Completed ${exercise.name} - ${caloriesBurned} calories burned` 
+              : `Skipped ${exercise.name}`
+          })
+        });
+
+        const historyData = await historyResponse.json();
+        if (historyResponse.ok) {
+          console.log('✓ Workout history saved:', historyData.data);
+        } else {
+          console.error('✗ Failed to save workout history:', historyData.error);
+        }
       } catch (err) {
-        console.error('Error updating Q-table:', err);
+        console.error('Error updating Q-table or saving workout history:', err);
       }
     }
 
@@ -302,33 +370,24 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
                         <div className="flex-1 min-w-0">
                           <h5 className="text-base font-semibold text-on-surface truncate">{exercise.name}</h5>
                           <div className="mt-2 flex flex-wrap items-center gap-3">
-                            {(() => {
-                              const duration = exercise.duration || `${Math.floor(Math.random() * 15) + 5} mins`;
-                              return (
-                                <span className="flex items-center text-xs text-on-surface-variant">
-                                  <span className="material-symbols-outlined mr-1 text-sm">timer</span>
-                                  {duration}
-                                </span>
-                              );
-                            })()}
-                            {(() => {
-                              const sets = exercise.sets || `${Math.floor(Math.random() * 4) + 2} Sets / ${Math.floor(Math.random() * 10) + 8} Reps`;
-                              return (
-                                <span className="flex items-center text-xs text-on-surface-variant">
-                                  <span className="material-symbols-outlined mr-1 text-sm">repeat</span>
-                                  {sets}
-                                </span>
-                              );
-                            })()}
-                            {(() => {
-                              const calories = exercise.caloriesBurn || Math.floor(Math.random() * 100) + 30;
-                              return (
-                                <span className="flex items-center text-xs text-on-surface-variant">
-                                  <span className="material-symbols-outlined mr-1 text-sm">local_fire_department</span>
-                                  ~{calories} kcal
-                                </span>
-                              );
-                            })()}
+                            {exercise.duration && (
+                              <span className="flex items-center text-xs text-on-surface-variant">
+                                <span className="material-symbols-outlined mr-1 text-sm">timer</span>
+                                {exercise.duration}
+                              </span>
+                            )}
+                            {exercise.sets && (
+                              <span className="flex items-center text-xs text-on-surface-variant">
+                                <span className="material-symbols-outlined mr-1 text-sm">repeat</span>
+                                {exercise.sets}
+                              </span>
+                            )}
+                            {exercise.caloriesBurn && (
+                              <span className="flex items-center text-xs text-on-surface-variant">
+                                <span className="material-symbols-outlined mr-1 text-sm">local_fire_department</span>
+                                ~{exercise.caloriesBurn} kcal
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
@@ -435,28 +494,11 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
                 <div className="space-y-3">
                   <h4 className="font-semibold text-on-surface">Instructions</h4>
                   <div className="rounded-lg bg-surface-container-lowest p-4">
-                    {(() => {
-                      try {
-                        if (!selectedExerciseDetail.instruction) {
-                          return <p className="text-sm text-on-surface-variant italic">No instructions available</p>;
-                        }
-                        const instructions = typeof selectedExerciseDetail.instruction === 'string'
-                          ? JSON.parse(selectedExerciseDetail.instruction)
-                          : selectedExerciseDetail.instruction;
-                        if (Array.isArray(instructions)) {
-                          return (
-                            <ol className="list-decimal list-inside space-y-2 text-sm text-on-surface">
-                              {instructions.map((instr, idx) => (
-                                <li key={idx} className="break-words">{instr}</li>
-                              ))}
-                            </ol>
-                          );
-                        }
-                        return <p className="text-sm text-on-surface">{instructions}</p>;
-                      } catch {
-                        return <p className="text-sm text-on-surface">{selectedExerciseDetail.instruction}</p>;
-                      }
-                    })()}
+                    {selectedExerciseDetail.instruction ? (
+                      <p className="text-sm text-on-surface">{selectedExerciseDetail.instruction}</p>
+                    ) : (
+                      <p className="text-sm text-on-surface-variant italic">No instructions available</p>
+                    )}
                   </div>
                 </div>
 
@@ -526,14 +568,62 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
               </div>
 
               {exercise.gifUrl && (
-                <img
-                  src={exercise.gifUrl}
-                  alt={exercise.name}
-                  className="mb-4 h-40 w-full rounded-lg object-cover"
-                  onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/300x200?text=Exercise';
-                  }}
-                />
+                <div className="mb-4 flex justify-center">
+                  <img
+                    src={exercise.gifUrl}
+                    alt={exercise.name}
+                    className="h-20 w-32 rounded-lg object-cover"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/300x200?text=Exercise';
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Exercise Details */}
+              <div className="mb-4 space-y-2 rounded-lg bg-primary-container/10 p-3">
+                {exercise.duration && (
+                  <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+                    <span className="material-symbols-outlined text-sm">timer</span>
+                    <span>{exercise.duration}</span>
+                  </div>
+                )}
+                {exercise.sets && (
+                  <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+                    <span className="material-symbols-outlined text-sm">repeat</span>
+                    <span>{exercise.sets}</span>
+                  </div>
+                )}
+                {exercise.caloriesBurn && (
+                  <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+                    <span className="material-symbols-outlined text-sm">local_fire_department</span>
+                    <span>~{exercise.caloriesBurn} kcal</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Target Muscle */}
+              {exercise.target && (
+                <div className="mb-4">
+                  <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">Target Muscle</h4>
+                  <p className="text-xs text-on-surface-variant capitalize">{exercise.target}</p>
+                </div>
+              )}
+
+              {/* Description */}
+              {exercise.description && (
+                <div className="mb-4">
+                  <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">Description</h4>
+                  <p className="text-xs text-on-surface-variant leading-relaxed">{exercise.description}</p>
+                </div>
+              )}
+
+              {/* Instructions */}
+              {exercise.instruction && (
+                <div className="mb-4">
+                  <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">Instructions</h4>
+                  <p className="text-xs text-on-surface-variant leading-relaxed">{exercise.instruction}</p>
+                </div>
               )}
 
               <div className="flex gap-2">
