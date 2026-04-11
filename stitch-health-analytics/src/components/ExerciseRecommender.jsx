@@ -2,6 +2,19 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 const API_BASE_URL = 'http://localhost:5001/api';
 
+const resolveGifUrl = (gifUrl, gifPath) => {
+  const rawPath = gifUrl || (gifPath ? `/api/exercise_gifs/${gifPath.split('/').pop()}` : '');
+  if (!rawPath) {
+    return null;
+  }
+
+  try {
+    return new URL(rawPath, API_BASE_URL).toString();
+  } catch (error) {
+    return rawPath;
+  }
+};
+
 const ExerciseRecommender = ({
   selectedMuscles = [],
   fitnessLevel = 'beginner',
@@ -124,7 +137,14 @@ const ExerciseRecommender = ({
 
       const res = await fetch(url);
       const data = await res.json();
-      return data.success ? data.exercises : [];
+      if (!data.success) {
+        return [];
+      }
+
+      return data.exercises.map((exercise) => ({
+        ...exercise,
+        gifUrl: resolveGifUrl(exercise.gifUrl, exercise.gif_path),
+      }));
     } catch (err) {
       console.error('Error fetching exercises:', err);
       return [];
@@ -385,10 +405,10 @@ const ExerciseRecommender = ({
           </div>
 
           <div className="flex items-start gap-4">
-            {currentExercise.gif_path && (
+            {resolveGifUrl(currentExercise.gifUrl, currentExercise.gif_path) && (
               <div className="hidden sm:block h-24 w-24 overflow-hidden rounded-lg">
                 <img
-                  src={`/api/exercise_gifs/${currentExercise.gif_path.split('/').pop()}`}
+                  src={resolveGifUrl(currentExercise.gifUrl, currentExercise.gif_path)}
                   alt={currentExercise.name}
                   className="h-full w-full object-cover"
                   onError={(e) => {

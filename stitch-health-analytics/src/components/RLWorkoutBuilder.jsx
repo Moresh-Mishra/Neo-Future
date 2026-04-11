@@ -4,6 +4,19 @@ const API_BASE_URL = 'http://localhost:5001/api';
 const REWARD_COMPLETED = 2;
 const REWARD_SKIPPED = -1;
 
+const resolveGifUrl = (gifUrl, gifPath) => {
+  const rawPath = gifUrl || (gifPath ? `/api/exercise_gifs/${gifPath.split('/').pop()}` : '');
+  if (!rawPath) {
+    return null;
+  }
+
+  try {
+    return new URL(rawPath, API_BASE_URL).toString();
+  } catch (error) {
+    return rawPath;
+  }
+};
+
 const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
   const [currentPhase, setCurrentPhase] = useState('selection'); // selection, executing, complete
   const [currentMuscleIndex, setCurrentMuscleIndex] = useState(0);
@@ -58,8 +71,12 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
         const data = await res.json();
 
         if (data.success && data.exercises) {
+          const normalized = data.exercises.map((exercise) => ({
+            ...exercise,
+            gifUrl: resolveGifUrl(exercise.gifUrl, exercise.gif_path),
+          }));
           // Take up to 5 exercises for selection
-          exercises[muscle] = data.exercises.slice(0, 5);
+          exercises[muscle] = normalized.slice(0, 5);
         } else {
           exercises[muscle] = [];
         }
@@ -93,9 +110,13 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
         const data = await res.json();
 
         if (data.success && data.exercises) {
+          const normalized = data.exercises.map((exercise) => ({
+            ...exercise,
+            gifUrl: resolveGifUrl(exercise.gifUrl, exercise.gif_path),
+          }));
           setAvailableExercises(prev => ({
             ...prev,
-            [muscle]: data.exercises // Show all exercises
+            [muscle]: normalized // Show all exercises
           }));
         }
       } catch (err) {
@@ -110,9 +131,13 @@ const RLWorkoutBuilder = ({ selectedMuscles, fitnessLevel, onComplete }) => {
         const data = await res.json();
 
         if (data.success && data.exercises) {
+          const normalized = data.exercises.map((exercise) => ({
+            ...exercise,
+            gifUrl: resolveGifUrl(exercise.gifUrl, exercise.gif_path),
+          }));
           setAvailableExercises(prev => ({
             ...prev,
-            [muscle]: data.exercises.slice(0, 5) // Show only top 5
+            [muscle]: normalized.slice(0, 5) // Show only top 5
           }));
         }
       } catch (err) {

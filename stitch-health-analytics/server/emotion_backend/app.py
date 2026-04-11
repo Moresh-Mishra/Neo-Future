@@ -1321,6 +1321,9 @@ def get_reflections(user_id):
             )
             rows = cursor.fetchall()
 
+        # Debug: log raw rows for mood chart troubleshooting
+        print(f"[debug] reflections fetched for user {user_id}: {rows}")
+
         parsed_rows = []
         for row in rows:
             emotions_array = []

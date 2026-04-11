@@ -4,6 +4,21 @@ import Footer from './Footer';
 import ExerciseRecommender from './ExerciseRecommender';
 import RLWorkoutBuilder from './RLWorkoutBuilder';
 
+const API_BASE_URL = 'http://localhost:5001/api';
+
+const resolveGifUrl = (gifUrl, gifPath) => {
+  const rawPath = gifUrl || (gifPath ? `/api/exercise_gifs/${gifPath.split('/').pop()}` : '');
+  if (!rawPath) {
+    return null;
+  }
+
+  try {
+    return new URL(rawPath, API_BASE_URL).toString();
+  } catch (error) {
+    return rawPath;
+  }
+};
+
 const FitnessSanctuary = () => {
   const [selectedFocus, setSelectedFocus] = useState('Legs');
   const [selectedIntensity, setSelectedIntensity] = useState('Gentle');
@@ -48,6 +63,11 @@ const FitnessSanctuary = () => {
             data.totalDuration = `${Math.floor(Math.random() * 30) + 30} mins`;
             data.totalCalories = Math.floor(Math.random() * 200) + 150;
           }
+
+          data.exercises = (data.exercises || []).map((exercise) => ({
+            ...exercise,
+            gifUrl: resolveGifUrl(exercise.gifUrl, exercise.gif_path),
+          }));
           setTodayWorkout(data);
         } else {
           // Fallback data if API fails

@@ -20,6 +20,15 @@ const HealthAnalytics = () => {
   const [monthlySummary, setMonthlySummary] = useState({ total: 0, goal: 2400, percentage: 0 });
   const [monthName, setMonthName] = useState('');
 
+  const getDateKey = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return String(value).split('T')[0];
+    }
+    return date.toISOString().slice(0, 10);
+  };
+
   // Default data for users with no reflections
   const getDefaultMoodData = () => [
     { day: 'Mon', mood: 6.5 },
@@ -60,8 +69,8 @@ const HealthAnalytics = () => {
           // Create a map of dates to mood values for quick lookup
           const moodMap = {};
           reflections.forEach(reflection => {
-            // Handle different date formats from database
-            const dateStr = reflection.submission_date ? reflection.submission_date.split('T')[0] : '';
+            const dateStr = getDateKey(reflection.submission_date);
+            if (!dateStr) return;
             moodMap[dateStr] = reflection.yesterday_rating || 0;
           });
 
@@ -74,10 +83,11 @@ const HealthAnalytics = () => {
             // Show last 7 months with current month on the right
             const monthlyMoodMap = {};
             reflections.forEach(reflection => {
-              const dateStr = reflection.submission_date ? reflection.submission_date.split('T')[0] : '';
+              const dateStr = getDateKey(reflection.submission_date);
+              if (!dateStr) return;
               const [year, month] = dateStr.split('-');
               const monthKey = `${year}-${month}`;
-              
+
               if (!monthlyMoodMap[monthKey]) {
                 monthlyMoodMap[monthKey] = [];
               }
@@ -195,7 +205,8 @@ const HealthAnalytics = () => {
           // Create a map of dates to sleep hours
           const sleepMap = {};
           reflections.forEach(reflection => {
-            const dateStr = reflection.submission_date ? reflection.submission_date.split('T')[0] : '';
+            const dateStr = getDateKey(reflection.submission_date);
+            if (!dateStr) return;
             sleepMap[dateStr] = parseSleepHours(reflection.sleep_hours);
           });
 
@@ -209,10 +220,11 @@ const HealthAnalytics = () => {
             // Show last 7 months with current month on the right
             const monthlySleepMap = {};
             reflections.forEach(reflection => {
-              const dateStr = reflection.submission_date ? reflection.submission_date.split('T')[0] : '';
+              const dateStr = getDateKey(reflection.submission_date);
+              if (!dateStr) return;
               const [year, month] = dateStr.split('-');
               const monthKey = `${year}-${month}`;
-              
+
               if (!monthlySleepMap[monthKey]) {
                 monthlySleepMap[monthKey] = [];
               }
