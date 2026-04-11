@@ -3,7 +3,12 @@ const cors = require('cors');
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
 const path = require('path');
+const axios = require('axios');
 const { hashPassword, comparePassword, generateToken, authMiddleware } = require('./auth');
+
+// Import route handlers
+const createChatRoutes = require('./routes/chatRoutes');
+const createAIRoutes = require('./routes/aiRoutes');
 
 dotenv.config();
 
@@ -44,10 +49,51 @@ async function initMySQL() {
     // Test connection
     await mysqlPool.query('SELECT 1');
     console.log('✓ Connected to MySQL Database');
+    
+    // Initialize chat tables
+    await initChatTables();
   } catch (error) {
     console.error('✗ MySQL Connection Error:', error.message);
     console.error('Please ensure MySQL is running and credentials are correct in .env file');
     process.exit(1);
+  }
+}
+
+// Initialize chat persistence tables
+async function initChatTables() {
+  try {
+    // Create ai_chats table if it doesn't exist
+    await mysqlPool.query(`
+      CREATE TABLE IF NOT EXISTS ai_chats (
+        chat_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        user_id INT NULL,
+        title VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_user_id (user_id),
+        CONSTRAINT fk_ai_chats_user FOREIGN KEY (user_id)
+          REFERENCES users(user_id) ON DELETE SET NULL
+      )
+    `);
+
+    // Create ai_chat_messages table if it doesn't exist
+    await mysqlPool.query(`
+      CREATE TABLE IF NOT EXISTS ai_chat_messages (
+        message_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        chat_id BIGINT NOT NULL,
+        role ENUM('user', 'assistant', 'system') NOT NULL,
+        content TEXT NOT NULL,
+        emotion JSON NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_chat_created (chat_id, created_at),
+        CONSTRAINT fk_ai_messages_chat FOREIGN KEY (chat_id)
+          REFERENCES ai_chats(chat_id) ON DELETE CASCADE
+      )
+    `);
+    
+    console.log('✓ Chat tables initialized');
+  } catch (error) {
+    console.error('✗ Failed to initialize chat tables:', error.message);
   }
 }
 
@@ -892,6 +938,17 @@ app.get('/api/health', (req, res) => {
 // Start server
 async function startServer() {
   await initMySQL();
+
+  // Mount chat and AI routes AFTER MySQL is initialized
+  app.use('/api/chats', (req, res, next) => {
+    req.mysqlPool = mysqlPool;
+    next();
+  }, createChatRoutes(mysqlPool));
+
+  app.use('/api/ai', (req, res, next) => {
+    req.mysqlPool = mysqlPool;
+    next();
+  }, createAIRoutes(mysqlPool));
 
   app.listen(PORT, () => {
     console.log(`\n🚀 Exercise Recommendation API Server running on port ${PORT}`);

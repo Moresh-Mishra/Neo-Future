@@ -8,8 +8,9 @@ const PUBLIC_URL = process.env.PUBLIC_URL || '';
 const AVATAR_BASE_URL = PANVEL_BASE_URL
   ? `${PANVEL_BASE_URL}/static/avatars`
   : `${PUBLIC_URL}/avatars`;
-const TTS_ENDPOINTS = ['webgpu', 'ws://127.0.0.1:8882/', 'wasm'];
+const TTS_ENDPOINTS = ['webgpu', 'wasm'];
 const VOICE_URL = `${PUBLIC_URL}/voices`;
+const TTS_SPEED = 1.22;
 const EMOTION_TEXT_ENDPOINT = `${EMOTION_API_BASE_URL}/api/ai/text-emotion`;
 const EMOTION_FACE_ENDPOINT = `${EMOTION_API_BASE_URL}/api/ai/facial-emotion`;
 const EMOTION_VOICE_ENDPOINT = `${EMOTION_API_BASE_URL}/api/ai/voice-emotion`;
@@ -53,30 +54,11 @@ const AICompanion = () => {
   const [message, setMessage] = useState('');
   
   // Message Management
-  const [messages, setMessages] = useState([
-    {
-      type: 'bot',
-      text: "Welcome back to your sanctuary. I've been reflecting on our session yesterday. How is your heart feeling in this moment?",
-      time: '10:24 AM',
-      role: 'ai',
-    },
-    {
-      type: 'user',
-      text: "I feel a bit overwhelmed by the noise today. I just need some space to breathe and find my center.",
-      time: '10:25 AM',
-      role: 'user',
-    },
-    {
-      type: 'bot',
-      text: "That is perfectly valid. The world can be loud. Let's focus on a rhythmic grounding exercise together. Shall we start with the forest breath?",
-      time: '10:26 AM',
-      suggestions: ['Yes, let\'s start', 'Maybe later'],
-      role: 'ai',
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
 
   // Chat Management States (from Panvel)
   const [chatHistory, setChatHistory] = useState([]);
+  const [chatList, setChatList] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -89,7 +71,7 @@ const AICompanion = () => {
   const [cameraError, setCameraError] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [micError, setMicError] = useState('');
-  const messagesEndRef = useRef(null);
+  const chatMessagesRef = useRef(null);
   const avatarContainerRef = useRef(null);
   const avatarInstanceRef = useRef({ head: null, headtts: null });
   const cameraStreamRef = useRef(null);
@@ -99,24 +81,213 @@ const AICompanion = () => {
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (!chatMessagesRef.current) {
+      return;
+    }
+
+    chatMessagesRef.current.scrollTo({
+      top: chatMessagesRef.current.scrollHeight,
+      behavior: 'smooth',
+    });
+  };
+
+  const normalizeSpeechText = (inputText) => {
+    if (!inputText) {
+      return '';
+    }
+
+    return inputText
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/`[^`]*`/g, ' ')
+      .replace(/https?:\/\/\S+/g, ' ')
+      .replace(/^\s*[-*\d]+[.)]?\s+/gm, ' ')
+      .replace(/[\r\n]+/g, ' ')
+      .replace(/\.{2,}/g, '.')
+      .replace(/[;:]+/g, ',')
+      .replace(/[\*_#~|]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  const toHistoryRole = (msg) => (msg?.type === 'user' ? 'user' : 'assistant');
+
+  const trimHistory = (historyItems, limit = 12) => historyItems.slice(-limit);
+
+  const getStoredUserId = () => {
+    try {
+      const userRaw = localStorage.getItem('user');
+      if (!userRaw) {
+        return null;
+      }
+
+      const userObj = JSON.parse(userRaw);
+      const idCandidate = userObj?.user_id ?? userObj?.id;
+      if (idCandidate === undefined || idCandidate === null) {
+        return null;
+      }
+
+      const parsedId = parseInt(idCandidate, 10);
+      return Number.isNaN(parsedId) ? null : parsedId;
+    } catch (err) {
+      return null;
+    }
+  };
+
+  const mapDbMessagesToUi = (dbMessages = []) => dbMessages.map((item) => ({
+    type: item.role === 'user' ? 'user' : 'bot',
+    role: item.role === 'user' ? 'user' : 'ai',
+    text: item.content,
+    time: formatTime(item.created_at ? new Date(item.created_at) : new Date()),
+  }));
+
+  const loadChatList = async () => {
+    const userId = getStoredUserId();
+    const url = userId
+      ? `${EMOTION_API_BASE_URL}/api/chats?user_id=${userId}`
+      : `${EMOTION_API_BASE_URL}/api/chats`;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        setChatList([]);
+        return;
+      }
+
+      const data = await response.json();
+      if (data.success && Array.isArray(data.chats)) {
+        setChatList(data.chats);
+      }
+    } catch (err) {
+      console.error('Error loading chat list:', err);
+    }
+  };
+
+  const loadChatMessages = async (chatId) => {
+    if (!chatId) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${EMOTION_API_BASE_URL}/api/chats/${chatId}/messages`);
+      if (!response.ok) {
+        throw new Error(`Unable to load messages (${response.status})`);
+      }
+
+      const data = await response.json();
+      const dbMessages = Array.isArray(data.messages) ? data.messages : [];
+      const uiMessages = mapDbMessagesToUi(dbMessages);
+
+      setCurrentChatId(chatId);
+      setMessages(uiMessages.length > 0 ? uiMessages : []);
+      setChatHistory(trimHistory(dbMessages
+        .filter((m) => m.role === 'user' || m.role === 'assistant')
+        .map((m) => ({ role: m.role, content: m.content }))));
+    } catch (err) {
+      console.error('Error loading chat messages:', err);
+      setError(err.message || 'Unable to load selected chat');
+    }
+  };
+
+  const createNewChat = async () => {
+    const userId = getStoredUserId();
+
+    try {
+      const response = await fetch(`${EMOTION_API_BASE_URL}/api/chats/new`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId || null, title: `Chat ${new Date().toLocaleString()}` }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Unable to create chat (${response.status})`);
+      }
+
+      const data = await response.json();
+      const newChatId = data?.chat?.chat_id || data?.chat_id;
+      if (data.success && newChatId) {
+        setCurrentChatId(newChatId);
+        setMessages([]);
+        setChatHistory([]);
+        setError(null);
+        await loadChatList();
+      }
+    } catch (err) {
+      console.error('Error creating new chat:', err);
+      setError(err.message || 'Unable to create new chat');
+    }
+  };
+
+  const sanitizeNonFinite = (value) => {
+    if (typeof value === 'number') {
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    if (Array.isArray(value)) {
+      return value.map(sanitizeNonFinite);
+    }
+
+    if (ArrayBuffer.isView(value)) {
+      if (value instanceof Float32Array || value instanceof Float64Array) {
+        const copy = value.slice();
+        for (let i = 0; i < copy.length; i += 1) {
+          if (!Number.isFinite(copy[i])) {
+            copy[i] = 0;
+          }
+        }
+        return copy;
+      }
+      return value;
+    }
+
+    const isPlainObject = value && typeof value === 'object' && value.constructor === Object;
+    if (isPlainObject) {
+      const sanitized = {};
+      Object.keys(value).forEach((key) => {
+        sanitized[key] = sanitizeNonFinite(value[key]);
+      });
+      return sanitized;
+    }
+
+    return value;
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    const initialHistory = messages
+      .filter((msg) => typeof msg?.text === 'string' && msg.text.trim())
+      .map((msg) => ({
+        role: toHistoryRole(msg),
+        content: msg.text.trim(),
+      }));
+
+    setChatHistory(trimHistory(initialHistory));
+  }, []);
+
+  useEffect(() => {
+    const bootstrapChats = async () => {
+      await loadChatList();
+    };
+
+    bootstrapChats();
+  }, []);
+
   const speakResponse = async (text) => {
     const headtts = avatarInstanceRef.current?.headtts;
-    if (!headtts || !text) {
+    const spokenText = normalizeSpeechText(text);
+
+    if (!headtts || !spokenText) {
       return;
     }
 
     try {
       setIsSpeaking(true);
-      await headtts.synthesize({ input: text });
+      await headtts.synthesize({ input: spokenText });
     } catch (speechError) {
       console.error('HeadTTS synthesize error:', speechError);
+    } finally {
       setIsSpeaking(false);
     }
   };
@@ -178,12 +349,20 @@ const AICompanion = () => {
       headtts.onmessage = (msg) => {
         if (msg.type === 'audio') {
           try {
-            head.speakAudio(msg.data, {});
+            const safeAudioData = sanitizeNonFinite(msg.data);
+            head.speakAudio(safeAudioData, {});
           } catch (speechError) {
-            console.error('TalkingHead playback error:', speechError);
+            // Retry with original payload in case sanitization removed required object prototypes.
+            try {
+              head.speakAudio(msg.data, {});
+            } catch (retryError) {
+              console.error('TalkingHead playback error:', retryError);
+              setIsSpeaking(false);
+            }
           }
         } else if (msg.type === 'error') {
           console.error('HeadTTS error:', msg.data?.error || 'Unknown error');
+          setIsSpeaking(false);
         }
       };
 
@@ -221,7 +400,7 @@ const AICompanion = () => {
         instance.headtts.setup({
           voice: person.avatar.body === 'M' ? 'am_fenrir' : 'af_bella',
           language: 'en-us',
-          speed: 1,
+          speed: TTS_SPEED,
           audioEncoding: 'wav',
         });
 
@@ -253,64 +432,7 @@ const AICompanion = () => {
   // Initialize chat session with Panvel backend
   const initializeChat = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.log('No token found, running in demo mode');
-        return;
-      }
-
-      // Fetch user profile
-      const profileRes = await fetch('http://localhost:5000/api/auth/profile', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!profileRes.ok) {
-        throw new Error('Failed to fetch profile');
-      }
-
-      const profileData = await profileRes.json();
-      const userId = profileData?.user?.id;
-
-      if (userId) {
-        // Try HeadTTS modular session endpoint first, then fallback to unified Panvel chats endpoint.
-        const attempts = [
-          {
-            url: `${PANVEL_BASE_URL}/api/session/create`,
-            parseChatId: (data) => data.session_id,
-            body: JSON.stringify({ user_id: userId }),
-          },
-          {
-            url: `${PANVEL_BASE_URL}/api/chats/new`,
-            parseChatId: (data) => data.chat_id,
-            body: JSON.stringify({}),
-          },
-        ];
-
-        for (const attempt of attempts) {
-          const chatRes = await fetch(attempt.url, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-            body: attempt.body,
-          });
-
-          if (chatRes.ok) {
-            const chatData = await chatRes.json();
-            const chatId = attempt.parseChatId(chatData);
-            if (chatData.success && chatId) {
-              setCurrentChatId(chatId);
-              console.log('Chat session created:', chatId);
-              break;
-            }
-          }
-        }
-      }
+      await loadChatList();
     } catch (err) {
       console.error('Chat initialization error:', err);
       // Continue in demo mode
@@ -345,6 +467,12 @@ const AICompanion = () => {
     };
     setMessages(prev => [...prev, newUserMessage]);
 
+    const nextHistory = trimHistory([
+      ...chatHistory,
+      { role: 'user', content: userMessage },
+    ]);
+    setChatHistory(nextHistory);
+
     try {
       setIsLoading(true);
       const token = localStorage.getItem('token');
@@ -352,7 +480,10 @@ const AICompanion = () => {
       // Call Stitch emotion detection API
       const apiUrl = EMOTION_TEXT_ENDPOINT;
       const requestBody = {
-        text: userMessage,
+        user_message: userMessage,
+        history: nextHistory,
+        chat_id: currentChatId,
+        user_id: getStoredUserId(),
       };
 
       console.log('Sending message to emotion backend:', requestBody);
@@ -377,8 +508,16 @@ const AICompanion = () => {
       if (data.avatarMood) {
         setAvatarMood(data.avatarMood);
       }
+
+      if (data.chat_id && data.chat_id !== currentChatId) {
+        setCurrentChatId(data.chat_id);
+      }
+
+      if (data.chat_id) {
+        loadChatList();
+      }
       // Get response message
-      let responseMessage = data.response;
+      let responseMessage = data.response || data.ai_response;
       if (typeof responseMessage === 'object' && responseMessage !== null) {
         responseMessage = responseMessage.message || JSON.stringify(responseMessage);
       }
@@ -444,6 +583,7 @@ const AICompanion = () => {
       emotion: mood,
     };
     setMessages(prev => [...prev, aiMessage]);
+    setChatHistory(prev => trimHistory([...prev, { role: 'assistant', content: text }]));
     speakResponse(text);
   };
 
@@ -699,12 +839,41 @@ const AICompanion = () => {
                 <p className="text-xs text-on-surface-variant">
                   {isLoading ? 'Processing your message...' : `Guided by Verdant AI • ${currentAvatar.charAt(0).toUpperCase() + currentAvatar.slice(1)}`}
                 </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <select
+                    className="rounded-md border border-outline-variant/30 bg-surface-container-low px-2 py-1 text-[11px] text-on-surface"
+                    value={currentChatId || ''}
+                    onChange={(e) => {
+                      const nextChatId = parseInt(e.target.value, 10);
+                      if (!Number.isNaN(nextChatId)) {
+                        loadChatMessages(nextChatId);
+                      } else {
+                        setCurrentChatId(null);
+                        setMessages([]);
+                        setChatHistory([]);
+                      }
+                    }}
+                  >
+                    <option value="">Select Chat</option>
+                    {chatList.map((chat) => (
+                      <option key={chat.chat_id} value={chat.chat_id}>
+                        {chat.title || `Chat ${chat.chat_id}`}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={createNewChat}
+                    className="rounded-md bg-primary px-2 py-1 text-[11px] font-semibold text-on-primary hover:opacity-90"
+                  >
+                    New Chat
+                  </button>
+                </div>
               </div>
               <span className="material-symbols-outlined text-primary-dim">settings_input_antenna</span>
             </div>
 
             {/* Chat Messages Area - Dynamic & Scrollable */}
-            <div className="flex-grow space-y-4 overflow-y-auto p-4 md:space-y-6 md:p-6">
+            <div ref={chatMessagesRef} className="flex-grow space-y-4 overflow-y-auto p-4 md:space-y-6 md:p-6">
               {messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <p className="text-on-surface-variant text-sm text-center">
@@ -766,8 +935,6 @@ const AICompanion = () => {
                     </div>
                   )}
 
-                  {/* Auto-scroll reference */}
-                  <div ref={messagesEndRef} />
                 </>
               )}
             </div>

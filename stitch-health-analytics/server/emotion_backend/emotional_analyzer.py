@@ -3,7 +3,6 @@ import os
 os.environ.setdefault('TRANSFORMERS_NO_TF', '1')
 os.environ.setdefault('USE_TF', '0')
 import tempfile
-import cv2
 import numpy as np
 
 _text_loaded = False
@@ -11,6 +10,7 @@ _face_loaded = False
 _text_classifier = None
 _face_cascade = None
 _DeepFace = None
+_cv2 = None
 
 
 def load_text_models():
@@ -30,7 +30,7 @@ def load_text_models():
 
 
 def load_face_models():
-    global _face_loaded, _face_cascade, _DeepFace
+    global _face_loaded, _face_cascade, _DeepFace, _cv2
 
     if _face_loaded:
         return
@@ -40,8 +40,14 @@ def load_face_models():
     except Exception as exc:
         raise RuntimeError(f"DeepFace import failed: {exc}")
 
-    _face_cascade = cv2.CascadeClassifier(
-        cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+    try:
+        import cv2 as cv2_module
+    except Exception as exc:
+        raise RuntimeError(f"OpenCV import failed: {exc}")
+
+    _cv2 = cv2_module
+    _face_cascade = _cv2.CascadeClassifier(
+        _cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
     )
     _DeepFace = DF
     _face_loaded = True
@@ -73,17 +79,17 @@ def analyze_face_from_bytes(image_bytes, top_k=2):
         load_face_models()
 
     nparr = np.frombuffer(image_bytes, np.uint8)
-    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    frame = _cv2.imdecode(nparr, _cv2.IMREAD_COLOR)
     if frame is None:
         return [], 0
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    gray = _cv2.cvtColor(frame, _cv2.COLOR_BGR2GRAY)
     faces = _face_cascade.detectMultiScale(gray, 1.1, 5)
     if len(faces) == 0:
         return [], 0
 
     with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
-        cv2.imwrite(tmp_file.name, frame)
+        _cv2.imwrite(tmp_file.name, frame)
         tmp_path = tmp_file.name
 
     try:

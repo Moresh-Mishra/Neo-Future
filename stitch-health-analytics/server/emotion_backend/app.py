@@ -1,9 +1,17 @@
 import base64
+import json
 import os
 import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+
+try:
+    import pymysql
+    from pymysql.cursors import DictCursor
+except Exception:
+    pymysql = None
+    DictCursor = None
 
 from emotional_analyzer import (
     analyze_text,
@@ -21,12 +29,210 @@ HF_TOKEN = os.getenv('HUGGINGFACE_API_TOKEN', '')
 HF_MODEL = os.getenv('HF_WHISPER_MODEL', 'distil-whisper/large-v3')
 OLLAMA_API_URL = os.getenv('OLLAMA_API_URL', 'http://127.0.0.1:11434/api/chat')
 OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'llama3:latest')
+MYSQL_HOST = os.getenv('MYSQL_HOST', '127.0.0.1')
+MYSQL_PORT = int(os.getenv('MYSQL_PORT', '3306'))
+MYSQL_USER = os.getenv('MYSQL_USER', 'root')
+MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD', '')
+MYSQL_DATABASE = os.getenv('MYSQL_DATABASE', 'exercise_db')
 
 ollama_session = requests.Session()
 ollama_session.headers.update({'Content-Type': 'application/json'})
 
 
-def get_ollama_response(user_text, emotions):
+def get_db_connection():
+    if not pymysql:
+        return None
+
+    return pymysql.connect(
+        host=MYSQL_HOST,
+        port=MYSQL_PORT,
+        user=MYSQL_USER,
+        password=MYSQL_PASSWORD,
+        database=MYSQL_DATABASE,
+        cursorclass=DictCursor,
+        autocommit=True,
+    )
+
+
+def init_chat_tables():
+    conn = get_db_connection()
+    if not conn:
+        print('MySQL driver unavailable; chat persistence disabled.')
+        return
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS ai_chats (
+                    chat_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    user_id INT NULL,
+                    title VARCHAR(255) NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    INDEX idx_user_id (user_id),
+                    CONSTRAINT fk_ai_chats_user FOREIGN KEY (user_id)
+                        REFERENCES users(user_id) ON DELETE SET NULL
+                )
+                """
+            )
+
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS ai_chat_messages (
+                    message_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    chat_id BIGINT NOT NULL,
+                    role ENUM('user', 'assistant', 'system') NOT NULL,
+                    content TEXT NOT NULL,
+                    emotion JSON NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_chat_created (chat_id, created_at),
+                    CONSTRAINT fk_ai_messages_chat FOREIGN KEY (chat_id)
+                        REFERENCES ai_chats(chat_id) ON DELETE CASCADE
+                )
+                """
+            )
+    except Exception as exc:
+        print(f'Failed to initialize chat tables: {exc}')
+    finally:
+        conn.close()
+
+
+def create_chat(user_id=None, title=None):
+    conn = get_db_connection()
+    if not conn:
+        return None
+
+    chat_title = (title or 'New Chat').strip()[:255] or 'New Chat'
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                'INSERT INTO ai_chats (user_id, title) VALUES (%s, %s)',
+                (user_id, chat_title),
+            )
+            chat_id = cursor.lastrowid
+
+        return {
+            'chat_id': chat_id,
+            'user_id': user_id,
+            'title': chat_title,
+        }
+    except Exception as exc:
+        print(f'Failed to create chat: {exc}')
+        return None
+    finally:
+        conn.close()
+
+
+def list_chats(user_id):
+    conn = get_db_connection()
+    if not conn:
+        return []
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT c.chat_id, c.user_id, c.title, c.created_at, c.updated_at,
+                       (SELECT content FROM ai_chat_messages m
+                        WHERE m.chat_id = c.chat_id
+                        ORDER BY m.created_at DESC LIMIT 1) AS last_message
+                FROM ai_chats c
+                WHERE c.user_id = %s
+                ORDER BY c.updated_at DESC
+                """,
+                (user_id,),
+            )
+            return cursor.fetchall()
+    except Exception as exc:
+        print(f'Failed to list chats: {exc}')
+        return []
+    finally:
+        conn.close()
+
+
+def get_chat_messages(chat_id, limit=200):
+    conn = get_db_connection()
+    if not conn:
+        return []
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT message_id, chat_id, role, content, emotion, created_at
+                FROM ai_chat_messages
+                WHERE chat_id = %s
+                ORDER BY created_at ASC
+                LIMIT %s
+                """,
+                (chat_id, limit),
+            )
+            rows = cursor.fetchall()
+
+        for row in rows:
+            if isinstance(row.get('emotion'), str):
+                try:
+                    row['emotion'] = json.loads(row['emotion'])
+                except Exception:
+                    row['emotion'] = None
+        return rows
+    except Exception as exc:
+        print(f'Failed to fetch chat messages: {exc}')
+        return []
+    finally:
+        conn.close()
+
+
+def store_message(chat_id, role, content, emotion=None):
+    conn = get_db_connection()
+    if not conn or not chat_id or not content:
+        return
+
+    try:
+        emotion_payload = json.dumps(emotion) if emotion is not None else None
+        with conn.cursor() as cursor:
+            cursor.execute(
+                'INSERT INTO ai_chat_messages (chat_id, role, content, emotion) VALUES (%s, %s, %s, %s)',
+                (chat_id, role, content, emotion_payload),
+            )
+            cursor.execute(
+                'UPDATE ai_chats SET updated_at = CURRENT_TIMESTAMP WHERE chat_id = %s',
+                (chat_id,),
+            )
+    except Exception as exc:
+        print(f'Failed to store chat message: {exc}')
+    finally:
+        conn.close()
+
+
+def sanitize_history(history, limit=12):
+    if not isinstance(history, list):
+        return []
+
+    cleaned = []
+    for item in history:
+        if not isinstance(item, dict):
+            continue
+
+        role = item.get('role')
+        if role not in ('user', 'assistant'):
+            continue
+
+        content = str(item.get('content', '')).strip()
+        if not content:
+            continue
+
+        cleaned.append({
+            'role': role,
+            'content': content[:2000],
+        })
+
+    return cleaned[-limit:]
+
+
+def get_ollama_response(user_text, emotions, conversation_history=None):
     emotion_str = ", ".join(
         [f"{e['emotion']} ({e['percentage']}%)" for e in emotions]
     ) or "neutral"
@@ -42,15 +248,18 @@ def get_ollama_response(user_text, emotions):
         "Respond as a supportive friend."
     )
 
+    messages = [
+        {"role": "system", "content": system_message},
+        *sanitize_history(conversation_history),
+        {"role": "user", "content": user_message},
+    ]
+
     try:
         response = ollama_session.post(
             OLLAMA_API_URL,
             json={
                 "model": OLLAMA_MODEL,
-                "messages": [
-                    {"role": "system", "content": system_message},
-                    {"role": "user", "content": user_message},
-                ],
+                "messages": messages,
                 "stream": False,
                 "options": {
                     "temperature": 0.8,
@@ -99,17 +308,93 @@ def health_check():
     })
 
 
+@app.route('/api/chats/new', methods=['POST'])
+def create_new_chat():
+    payload = request.get_json(silent=True) or {}
+    user_id = payload.get('user_id')
+    title = payload.get('title')
+
+    try:
+        user_id = int(user_id) if user_id is not None else None
+    except Exception:
+        return jsonify({'success': False, 'error': 'user_id must be numeric'}), 400
+
+    chat = create_chat(user_id=user_id, title=title)
+    if not chat:
+        return jsonify({'success': False, 'error': 'Unable to create chat'}), 500
+
+    return jsonify({'success': True, 'chat': chat})
+
+
+@app.route('/api/chats', methods=['GET'])
+def list_user_chats():
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({'success': False, 'error': 'user_id is required'}), 400
+
+    try:
+        user_id = int(user_id)
+    except Exception:
+        return jsonify({'success': False, 'error': 'user_id must be numeric'}), 400
+
+    chats = list_chats(user_id)
+    return jsonify({'success': True, 'chats': chats})
+
+
+@app.route('/api/chats/<int:chat_id>/messages', methods=['GET'])
+def get_messages_for_chat(chat_id):
+    messages = get_chat_messages(chat_id)
+    return jsonify({'success': True, 'messages': messages})
+
+
 @app.route('/api/ai/text-emotion', methods=['POST'])
 def analyze_text_emotion():
     payload = request.get_json(silent=True) or {}
     text = payload.get('text', '').strip()
+    conversation_history = payload.get('history', [])
+    chat_id = payload.get('chat_id')
+    user_id = payload.get('user_id')
 
     if not text:
         return jsonify({'success': False, 'error': 'Text is required'}), 400
 
-    emotions = analyze_text(text)
+    try:
+        emotions = analyze_text(text)
+    except Exception as exc:
+        print(f"Text emotion model unavailable, using neutral fallback: {exc}")
+        emotions = [{"emotion": "neutral", "percentage": 100.0}]
+
+    if not emotions:
+        emotions = [{"emotion": "neutral", "percentage": 100.0}]
+
+    try:
+        chat_id = int(chat_id) if chat_id is not None else None
+    except Exception:
+        chat_id = None
+
+    try:
+        user_id = int(user_id) if user_id is not None else None
+    except Exception:
+        user_id = None
+
+    if not chat_id and user_id is not None:
+        new_chat = create_chat(user_id=user_id, title=text[:50] or 'New Chat')
+        chat_id = new_chat['chat_id'] if new_chat else None
+
+    if chat_id and (not isinstance(conversation_history, list) or len(conversation_history) == 0):
+        db_messages = get_chat_messages(chat_id, limit=12)
+        conversation_history = [
+            {'role': row.get('role'), 'content': row.get('content', '')}
+            for row in db_messages
+            if row.get('role') in ('user', 'assistant') and row.get('content')
+        ]
+
     mood = map_mood(emotions[0]['emotion'] if emotions else 'neutral')
-    response_message, mood = get_ollama_response(text, emotions)
+    response_message, mood = get_ollama_response(text, emotions, conversation_history)
+
+    if chat_id:
+        store_message(chat_id, 'user', text, emotions)
+        store_message(chat_id, 'assistant', response_message, {'mood': mood})
 
     return jsonify({
         'success': True,
@@ -118,6 +403,7 @@ def analyze_text_emotion():
         'emotions': emotions,
         'avatarMood': mood,
         'response': response_message,
+        'chat_id': chat_id,
     })
 
 
@@ -226,5 +512,6 @@ def analyze_combined_emotion():
 
 
 if __name__ == '__main__':
+    init_chat_tables()
     port = int(os.getenv('EMOTION_PORT', '5001'))
     app.run(host='0.0.0.0', port=port, debug=True)
