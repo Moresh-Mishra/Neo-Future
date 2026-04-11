@@ -4,6 +4,8 @@ import Footer from './Footer';
 
 const UserDashboard = () => {
   const [user, setUser] = useState(null);
+  const [calorieData, setCalorieData] = useState([]);
+  const [isCaloriesLoading, setIsCaloriesLoading] = useState(true);
 
   // Load user from localStorage
   useEffect(() => {
@@ -17,15 +19,54 @@ const UserDashboard = () => {
       }
     }
   }, []);
-  const moodData = [
-    { day: 'Mon', value: 24, fill: 'bg-[#7DA47D]/40' },
-    { day: 'Tue', value: 32, fill: 'bg-[#7DA47D]/40' },
-    { day: 'Wed', value: 28, fill: 'bg-[#7DA47D]/60' },
-    { day: 'Thu', value: 40, fill: 'bg-gradient-to-t from-[#436745] to-[#7DA47D]' },
-    { day: 'Fri', value: 24, fill: 'bg-[#7DA47D]/40' },
-    { day: 'Sat', value: 20, fill: 'bg-[#7DA47D]/30' },
-    { day: 'Sun', value: 36, fill: 'bg-[#7DA47D]/50' },
+  const fallbackCalorieData = [
+    { day: 'Mon', calories: 0 },
+    { day: 'Tue', calories: 0 },
+    { day: 'Wed', calories: 0 },
+    { day: 'Thu', calories: 0 },
+    { day: 'Fri', calories: 0 },
+    { day: 'Sat', calories: 0 },
+    { day: 'Sun', calories: 0 },
   ];
+
+  useEffect(() => {
+    const fetchCalories = async () => {
+      if (!user?.user_id) {
+        setCalorieData(fallbackCalorieData);
+        setIsCaloriesLoading(false);
+        return;
+      }
+
+      try {
+        const authToken = localStorage.getItem('authToken');
+        const response = await fetch(
+          `http://localhost:5001/api/workouts/calories?userId=${user.user_id}&range=week`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': authToken ? `Bearer ${authToken}` : '',
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const rows = data.data || [];
+          setCalorieData(rows.length ? rows : fallbackCalorieData);
+        } else {
+          setCalorieData(fallbackCalorieData);
+        }
+      } catch (error) {
+        console.error('Error fetching calorie data:', error);
+        setCalorieData(fallbackCalorieData);
+      } finally {
+        setIsCaloriesLoading(false);
+      }
+    };
+
+    fetchCalories();
+  }, [user]);
 
   const healthStats = [
     { label: 'Sleep Quality', value: '82%', icon: 'bedtime', color: '#436745', progress: 82 },
@@ -82,25 +123,41 @@ const UserDashboard = () => {
             <div className="md:col-span-8 bg-surface-container-lowest rounded-xl p-4 shadow-sm border border-stone-100 flex flex-col md:p-8">
               <div className="mb-6 flex flex-wrap items-center justify-between gap-3 md:mb-8">
                 <div>
-                  <h2 className="mb-1 text-xl font-bold md:text-2xl">Weekly Resonance</h2>
-                  <p className="text-sm text-on-surface-variant">Your emotional landscape over the last 7 days</p>
+                  <h2 className="mb-1 text-xl font-bold md:text-2xl">Weekly Calories Burned</h2>
+                  <p className="text-sm text-on-surface-variant">Energy output over the last 7 days</p>
                 </div>
                 <div className="bg-primary-container text-primary px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider">
-                  Consistent Calm
+                  {isCaloriesLoading ? 'Loading' : 'Weekly Totals'}
                 </div>
               </div>
 
               <div className="flex-1 min-h-[240px] relative flex items-end justify-between gap-2 pt-4">
-                {moodData.map((item) => (
-                  <div key={item.day} className="flex flex-col items-center gap-2 w-full">
-                    <div className="w-full bg-primary-container/30 rounded-t-lg h-24 relative overflow-hidden">
-                      <div className={`absolute bottom-0 w-full ${item.fill} transition-all`} style={{ height: `${item.value}px` }}></div>
+                {(() => {
+                  const chartRows = calorieData.length ? calorieData : fallbackCalorieData;
+                  const maxCalories = Math.max(...chartRows.map((row) => row.calories || 0), 1);
+
+                  return chartRows.map((item) => {
+                    const height = Math.max(8, Math.round((item.calories / maxCalories) * 120));
+                  const fillClass = item.calories > 0
+                    ? 'bg-gradient-to-t from-[#436745] to-[#7DA47D]'
+                    : 'bg-[#7DA47D]/30';
+
+                  return (
+                    <div key={item.label || item.day} className="flex flex-col items-center gap-2 w-full">
+                      <div className="w-full bg-primary-container/30 rounded-t-lg h-28 relative overflow-hidden">
+                        <div
+                          className={`absolute bottom-0 w-full ${fillClass} transition-all`}
+                          style={{ height: `${height}px` }}
+                          title={`${item.calories || 0} kcal`}
+                        ></div>
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-tighter text-on-surface-variant">
+                        {item.label || item.day}
+                      </span>
                     </div>
-                    <span className={`text-[10px] font-bold uppercase tracking-tighter ${item.day === 'Thu' ? 'text-primary' : 'text-on-surface-variant'}`}>
-                      {item.day}
-                    </span>
-                  </div>
-                ))}
+                  );
+                  });
+                })()}
               </div>
             </div>
 

@@ -99,6 +99,26 @@ def get_db_connection():
     )
 
 
+def get_table_columns(conn, table_name):
+    if not conn:
+        return set()
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s",
+                (MYSQL_DATABASE, table_name),
+            )
+            rows = cursor.fetchall()
+        return {
+            row.get('COLUMN_NAME')
+            for row in rows
+            if row.get('COLUMN_NAME')
+        }
+    except Exception:
+        return set()
+
+
 def hash_password(password):
     if password is None:
         return None
@@ -1493,6 +1513,72 @@ def get_active_minutes():
             }
         })
     except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
+    finally:
+        conn.close()
+
+
+@app.route('/api/workouts/calories', methods=['GET'])
+def get_calories_burned():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'error': 'Database unavailable'}), 500
+
+    user_id = request.args.get('userId')
+    range_type = request.args.get('range', 'week')
+
+    if not user_id:
+        return jsonify({'success': False, 'error': 'userId is required'}), 400
+
+    data_points = []
+
+    try:
+        columns = get_table_columns(conn, 'user_history')
+        lower_columns = {col.lower() for col in columns}
+        if 'calories_burned' not in lower_columns:
+            return jsonify({'success': True, 'data': []})
+
+        with conn.cursor() as cursor:
+            if range_type == 'week':
+                today = datetime.now()
+                start_date = today - timedelta(days=6)
+                end_date = today
+                week_start_str = start_date.strftime('%Y-%m-%d')
+                week_end_str = end_date.strftime('%Y-%m-%d')
+
+                query = (
+                    "SELECT DATE(COALESCE(uh.workout_date, uh.created_at)) as workout_date, "
+                    "SUM(uh.calories_burned) as calories "
+                    "FROM user_history uh "
+                    "WHERE uh.user_id = %s AND DATE(COALESCE(uh.workout_date, uh.created_at)) >= %s "
+                    "AND DATE(COALESCE(uh.workout_date, uh.created_at)) <= %s "
+                    "GROUP BY DATE(COALESCE(uh.workout_date, uh.created_at)) "
+                    "ORDER BY workout_date"
+                )
+                cursor.execute(query, (user_id, week_start_str, week_end_str))
+                rows = cursor.fetchall()
+                print(f"[debug] calories rows for user {user_id}: {rows}")
+
+                date_map = {}
+                for row in rows:
+                    date_str = row['workout_date'].strftime('%Y-%m-%d')
+                    date_map[date_str] = date_map.get(date_str, 0) + int(row['calories'] or 0)
+
+                for i in range(7):
+                    date = start_date + timedelta(days=i)
+                    date_str = date.strftime('%Y-%m-%d')
+                    calories = int(date_map.get(date_str, 0))
+                    data_points.append({
+                        'date': date_str,
+                        'label': date.strftime('%a'),
+                        'calories': calories,
+                    })
+            else:
+                return jsonify({'success': False, 'error': 'range must be week'}), 400
+
+        return jsonify({'success': True, 'data': data_points})
+    except Exception as exc:
+        print(f"[error] calories endpoint failed: {exc}")
         return jsonify({'success': False, 'error': str(exc)}), 500
     finally:
         conn.close()
