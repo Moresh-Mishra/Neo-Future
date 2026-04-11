@@ -10,6 +10,15 @@ const HealthAnalytics = () => {
   const [sleepQualityData, setSleepQualityData] = useState([]);
   const [averageSleepHours, setAverageSleepHours] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Active Minutes state
+  const [dailyActiveMinutes, setDailyActiveMinutes] = useState([]);
+  const [weeklyActiveMinutes, setWeeklyActiveMinutes] = useState([]);
+  const [monthlyActiveMinutes, setMonthlyActiveMinutes] = useState([]);
+  const [dailySummary, setDailySummary] = useState({ total: 0, goal: 120, percentage: 0 });
+  const [weeklySummary, setWeeklySummary] = useState({ total: 0, goal: 540, percentage: 0 });
+  const [monthlySummary, setMonthlySummary] = useState({ total: 0, goal: 2400, percentage: 0 });
+  const [monthName, setMonthName] = useState('');
 
   // Default data for users with no reflections
   const getDefaultMoodData = () => [
@@ -284,6 +293,97 @@ const HealthAnalytics = () => {
     fetchSleepData();
   }, [timeRange]);
 
+  // Fetch active minutes data for daily, weekly, and monthly views
+  useEffect(() => {
+    const fetchActiveMinutesData = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const authToken = localStorage.getItem('authToken');
+
+        if (!user || !authToken) {
+          console.error('User not authenticated');
+          return;
+        }
+
+        // Fetch daily data
+        const dailyResponse = await fetch(
+          `http://localhost:5000/api/workouts/active-minutes?userId=${user.user_id}&range=day`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (dailyResponse.ok) {
+          const dailyData = await dailyResponse.json();
+          console.log('📅 Daily API Response:', dailyData);
+          setDailyActiveMinutes(dailyData.data || []);
+          setDailySummary(dailyData.summary || { total: 0, goal: 120, percentage: 0 });
+        }
+
+        // Fetch weekly data
+        const weeklyResponse = await fetch(
+          `http://localhost:5000/api/workouts/active-minutes?userId=${user.user_id}&range=week`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (weeklyResponse.ok) {
+          const weeklyData = await weeklyResponse.json();
+          console.log('📊 Weekly API Response:', weeklyData);
+          setWeeklyActiveMinutes(weeklyData.data || []);
+          setWeeklySummary(weeklyData.summary || { total: 0, goal: 540, percentage: 0 });
+        }
+
+        // Fetch monthly data
+        const monthlyResponse = await fetch(
+          `http://localhost:5000/api/workouts/active-minutes?userId=${user.user_id}&range=month`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (monthlyResponse.ok) {
+          const monthlyData = await monthlyResponse.json();
+          console.log('📆 Monthly API Response:', monthlyData);
+          setMonthlyActiveMinutes(monthlyData.data || []);
+          setMonthlySummary(monthlyData.summary || { total: 0, goal: 2400, percentage: 0 });
+          setMonthName(monthlyData.monthName || '');
+        }
+      } catch (error) {
+        console.error('❌ Error fetching active minutes data:', error);
+      }
+    };
+
+    console.log('📊 Fetching active minutes data for user...');
+    fetchActiveMinutesData();
+  }, []);
+
+  // Log state updates
+  useEffect(() => {
+    console.log('📈 State Updated:', {
+      dailyMinutes: dailyActiveMinutes.length,
+      weeklyMinutes: weeklyActiveMinutes.length,
+      monthlyMinutes: monthlyActiveMinutes.length,
+      dailySummary,
+      weeklySummary,
+      monthlySummary,
+      monthName
+    });
+  }, [dailyActiveMinutes, weeklyActiveMinutes, monthlyActiveMinutes, dailySummary, weeklySummary, monthlySummary, monthName]);
+
   // Default sleep data for users with no reflections
   const getDefaultSleepData = () => [
     { day: 'Mon', hours: 6.5 },
@@ -400,24 +500,63 @@ const HealthAnalytics = () => {
                 </ResponsiveContainer>
               </section>
 
-              {/* Daily Activity (Small Bento) */}
-              <section className="md:col-span-4 bg-[#dde5d9]/30 rounded-[1.5rem] p-4 flex flex-col justify-between md:rounded-[2rem] md:p-8">
+              {/* Active Minutes - 3 Stacked Progress Trackers */}
+              <section className="md:col-span-4 bg-[#dde5d9]/30 rounded-[1.5rem] p-4 flex flex-col gap-4 md:rounded-[2rem] md:p-8">
                 <div>
-                  <div className="w-12 h-12 rounded-2xl bg-secondary-container flex items-center justify-center mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-secondary-container flex items-center justify-center mb-4">
                     <span className="material-symbols-outlined text-[#436745]">directions_run</span>
                   </div>
                   <h3 className="text-xl font-headline font-bold text-[#436745]">Active Minutes</h3>
-                  <div className="text-4xl font-headline font-extrabold text-[#436745] mt-2">
-                    420 <span className="text-sm font-medium text-[#436745]/60 uppercase">Min</span>
+                </div>
+
+                {/* Daily */}
+                <div className="bg-white/30 rounded-xl p-3">
+                  <h4 className="text-sm font-headline font-bold text-[#436745] mb-3">Today</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs font-bold text-[#436745]">
+                      <span>{dailySummary.total} min</span>
+                      <span>{dailySummary.percentage}% of {dailySummary.goal} min</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/50 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-[#7DA47D] rounded-full transition-all"
+                        style={{ width: `${Math.min(dailySummary.percentage, 100)}%` }}
+                      ></div>
+                    </div>
                   </div>
                 </div>
-                <div className="mt-8 space-y-4">
-                  <div className="flex justify-between items-center text-xs font-bold text-[#436745]">
-                    <span>Goal: 450 min</span>
-                    <span>93%</span>
+
+                {/* Weekly */}
+                <div className="bg-white/30 rounded-xl p-3">
+                  <h4 className="text-sm font-headline font-bold text-[#436745] mb-3">Weekly</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs font-bold text-[#436745]">
+                      <span>{weeklySummary.total} min</span>
+                      <span>{weeklySummary.percentage}% of {weeklySummary.goal} min</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/50 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-[#7DA47D] rounded-full transition-all"
+                        style={{ width: `${Math.min(weeklySummary.percentage, 100)}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="h-2 w-full bg-white/50 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#7DA47D] rounded-full w-[93%]"></div>
+                </div>
+
+                {/* Monthly */}
+                <div className="bg-white/30 rounded-xl p-3">
+                  <h4 className="text-sm font-headline font-bold text-[#436745] mb-3">Monthly ({monthName})</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs font-bold text-[#436745]">
+                      <span>{Math.round(monthlySummary.total / 60 * 10) / 10} hrs</span>
+                      <span>{monthlySummary.percentage}% of {Math.round(monthlySummary.goal / 60)} hrs</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/50 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-[#7DA47D] rounded-full transition-all"
+                        style={{ width: `${Math.min(monthlySummary.percentage, 100)}%` }}
+                      ></div>
+                    </div>
                   </div>
                 </div>
               </section>

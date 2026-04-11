@@ -9,6 +9,7 @@ const { hashPassword, comparePassword, generateToken, authMiddleware } = require
 // Import route handlers
 const createChatRoutes = require('./routes/chatRoutes');
 const createAIRoutes = require('./routes/aiRoutes');
+const createWorkoutRoutes = require('./routes/workoutRoutes');
 
 dotenv.config();
 
@@ -1076,6 +1077,11 @@ async function startServer() {
     req.mysqlPool = mysqlPool;
     next();
   }, createAIRoutes(mysqlPool));
+
+  app.use('/api/workouts', (req, res, next) => {
+    req.mysqlPool = mysqlPool;
+    next();
+  }, createWorkoutRoutes(mysqlPool));
 
   app.listen(PORT, () => {
     console.log(`\n🚀 Exercise Recommendation API Server running on port ${PORT}`);
