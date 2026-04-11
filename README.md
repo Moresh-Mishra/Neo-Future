@@ -1,8 +1,25 @@
-# EmWell Wellness Platform
+# EmWell - Wellness Intelligence Platform
 
-EmWell is a wellness companion that blends daily reflections, emotion-aware insights, and personalized fitness tracking into a calm, guided experience. This repository includes the React web app, a Flask API, and Python utilities for exercise data and reinforcement-learning recommendations.
+> A calm, data-informed wellness companion that combines daily reflections, emotional insights, and personalized fitness tracking.
+
+[![React](https://img.shields.io/badge/React-18-blue.svg)](https://react.dev)
+[![Flask](https://img.shields.io/badge/Flask-3.0.2-green.svg)](https://flask.palletsprojects.com/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.x-blue.svg)](https://www.mysql.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Scope note: This README covers the workspace except the Panvel directory, as requested.
+
+## Project Overview
+
+EmWell provides a gentle, guided wellness experience with mood tracking, sleep insights, and fitness planning. It uses a React frontend for the user experience, a Flask backend for reflections and workout data, and Python utilities for exercise data ingestion and reinforcement-learning recommendations.
+
+### Highlights
+
+- Daily reflections with mood and sleep tracking
+- Mood and sleep trend visualizations
+- Fitness sanctuary with workout plans and GIFs
+- Calorie-burn bar chart from user history
+- Q-learning based exercise recommendation utilities
 
 ## Project Structure
 
@@ -20,14 +37,14 @@ Scope note: This README covers the workspace except the Panvel directory, as req
 └─ README.md                                # This file
 ```
 
-## Architecture (Interactive)
+## System Architecture (Interactive)
 
 ```mermaid
 flowchart LR
   A[React Frontend] -->|HTTP| B[Flask API]
   B -->|SQL| C[(MySQL)]
-  D[Exercise Utilities] -->|seed data| C
-  B -->|serve| E[Exercise GIFs]
+  D[Exercise Utilities] -->|Seed data| C
+  B -->|Serve GIFs| E[Exercise GIFs]
 
   subgraph Frontend
     A
@@ -47,19 +64,23 @@ flowchart LR
   end
 ```
 
-## Key Features
+## Data Flow
 
-- Daily reflections with mood and sleep tracking
-- Mood and sleep trend visualizations
-- Fitness sanctuary with workout plans and GIFs
-- Calorie-burn bar chart from user history
-- Q-learning based exercise recommendation utilities
+1) User submits daily reflection or workout activity
+2) Flask API validates and stores data in MySQL
+3) Frontend fetches metrics to render charts
+4) Exercise utilities seed and enrich the exercise library
 
 ## Tech Stack
 
-- Frontend: React, Recharts, Tailwind
-- Backend: Flask (Python), MySQL, PyMySQL
-- Data tools: Python scripts for ingestion and RL recommendations
+### Frontend
+- React, Recharts, Tailwind
+
+### Backend
+- Flask (Python), MySQL, PyMySQL
+
+### Data Tools
+- Python scripts for ingestion and RL recommendations
 
 ## How To Use
 
@@ -147,3 +168,9 @@ python app.py
 ## License
 
 Specify your license here.
+
+## Acknowledgments
+
+- Recharts for charts and data visualization
+- Flask ecosystem for fast API development
+- ExerciseDB data sources used by the ingestion utilities
