@@ -4,7 +4,7 @@ import '../styles/emwell.css';
 // Import local images
 import backgroundForest from '../assets/background-forest.jpg';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = 'http://localhost:5001';
 
 const LoginPage = ({ onNavigate }) => {
   const [email, setEmail] = useState('');

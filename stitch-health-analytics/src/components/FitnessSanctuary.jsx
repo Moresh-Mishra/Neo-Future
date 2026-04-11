@@ -37,7 +37,7 @@ const FitnessSanctuary = () => {
         const difficulty = difficultyMap[selectedIntensity] || 'beginner';
         
         console.log('Fetching workout for difficulty:', difficulty);
-        const response = await fetch(`http://localhost:5000/api/workout/today?difficulty=${difficulty}`);
+        const response = await fetch(`http://localhost:5001/api/workout/today?difficulty=${difficulty}`);
         console.log('Response status:', response.status);
         const data = await response.json();
         console.log('API Response:', data);

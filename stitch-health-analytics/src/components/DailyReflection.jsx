@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 
 const TOTAL_STEPS = 8;
-const API_URL = 'http://localhost:5000';
+const API_URL = 'http://localhost:5001';
 
 const DailyReflection = ({ onNavigate, onClose }) => {
   const [currentStep, setCurrentStep] = useState(1);

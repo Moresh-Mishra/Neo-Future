@@ -45,7 +45,7 @@ const HealthAnalytics = () => {
           return;
         }
 
-        const response = await fetch(`http://localhost:5000/api/reflections/${user.user_id}`, {
+          const response = await fetch(`http://localhost:5001/api/reflections/${user.user_id}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -180,7 +180,7 @@ const HealthAnalytics = () => {
           return;
         }
 
-        const response = await fetch(`http://localhost:5000/api/reflections/${user.user_id}`, {
+        const response = await fetch(`http://localhost:5001/api/reflections/${user.user_id}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -306,8 +306,8 @@ const HealthAnalytics = () => {
         }
 
         // Fetch daily data
-        const dailyResponse = await fetch(
-          `http://localhost:5000/api/workouts/active-minutes?userId=${user.user_id}&range=day`,
+          const dailyResponse = await fetch(
+            `http://localhost:5001/api/workouts/active-minutes?userId=${user.user_id}&range=day`,
           {
             method: 'GET',
             headers: {
@@ -325,8 +325,8 @@ const HealthAnalytics = () => {
         }
 
         // Fetch weekly data
-        const weeklyResponse = await fetch(
-          `http://localhost:5000/api/workouts/active-minutes?userId=${user.user_id}&range=week`,
+          const weeklyResponse = await fetch(
+            `http://localhost:5001/api/workouts/active-minutes?userId=${user.user_id}&range=week`,
           {
             method: 'GET',
             headers: {
@@ -344,8 +344,8 @@ const HealthAnalytics = () => {
         }
 
         // Fetch monthly data
-        const monthlyResponse = await fetch(
-          `http://localhost:5000/api/workouts/active-minutes?userId=${user.user_id}&range=month`,
+          const monthlyResponse = await fetch(
+            `http://localhost:5001/api/workouts/active-minutes?userId=${user.user_id}&range=month`,
           {
             method: 'GET',
             headers: {
