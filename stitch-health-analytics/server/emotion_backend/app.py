@@ -62,6 +62,7 @@ EXERCISE_GIFS_DIR = os.path.abspath(
         os.path.dirname(__file__),
         '..',
         '..',
+        '..',
         'Exercise recomendation project',
         'exercise_gifs',
     )
@@ -503,7 +504,17 @@ def health_check():
 
 @app.route('/api/exercise_gifs/<path:filename>', methods=['GET'])
 def serve_exercise_gif(filename):
-    return send_from_directory(EXERCISE_GIFS_DIR, filename)
+    safe_name = os.path.basename((filename or '').replace('\\', '/')).strip()
+    if not safe_name:
+        return jsonify({'success': False, 'error': 'Invalid GIF filename'}), 400
+    if '.' not in safe_name:
+        safe_name = f'{safe_name}.gif'
+
+    full_path = os.path.join(EXERCISE_GIFS_DIR, safe_name)
+    if not os.path.isfile(full_path):
+        return jsonify({'success': False, 'error': f'GIF not found: {safe_name}'}), 404
+
+    return send_from_directory(EXERCISE_GIFS_DIR, safe_name)
 
 
 @app.route('/api/exercises/muscles', methods=['GET'])
